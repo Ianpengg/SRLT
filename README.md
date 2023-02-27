@@ -1,4 +1,4 @@
-# SR-label: Scanning Radar Moving Segmentation Mask Annotation Tool
+# SR-label: Scanning Radar Moving Object Segmentation Mask Annotation Tool
 ### Main UI
 ![image](https://user-images.githubusercontent.com/88025855/221499765-f3169973-052f-4936-8eaa-794ac6ab2200.png)
 
