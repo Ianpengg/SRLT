@@ -86,11 +86,8 @@ def file_to_id(str_):
 
 
 class MotionLabelInterface:
-    def __init__(self, fig, ax, ax2, labeled_data_root, data_root, filename, args):
+    def __init__(self, labeled_data_root, data_root, filename, args):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.fig = fig
-        self.ax = ax
-        self.ax2 = ax2
         self.press = None
         self.filename = filename
         self.data_root = data_root
@@ -100,16 +97,29 @@ class MotionLabelInterface:
         self.seq_dirs.sort(key=file_to_id)
         
         # Label configs ex: visualization controls
-        self.idx = 730
+        self.idx = 618
         self.old_idx = -1
         self.paint_size = 0
         self.mcdrop = args.mcdrop
-        self.show_lidar = False
+        self.show_lidar = True
         self.show_stereo = False
         self.show_mono_rear = False
         self.show_mono_left = False
         self.show_mono_right = False
         self.label_thres = 0.13
+        if (self.show_stereo or self.show_mono_left or self.show_mono_right or self.show_mono_rear or self.show_lidar):
+            fig, (ax) = plt.subplots(1, 1, figsize=(12, 12), facecolor=(0,0,0))
+            plt.tight_layout()
+            self.fig = fig
+            self.ax = ax
+            self.ax2 = None
+
+        else:
+            fig, (ax, ax2) = plt.subplots(1, 2, figsize=(12, 12), facecolor=(0,0,0))
+            plt.tight_layout()
+            self.fig = fig
+            self.ax = ax
+            self.ax2 = ax2
         #
         rospy.init_node('talker', anonymous=True)
         self.lidar_pub = rospy.Publisher('/lidarpoint', PointCloud2, queue_size=100)
@@ -287,13 +297,13 @@ class MotionLabelInterface:
             offset_image = OffsetImage(car_image, zoom=0.1, alpha=0.5)
             box = AnnotationBbox(offset_image, [127, 127], frameon=False, zorder=999)
             
-
-            self.ax2.clear()
-            self.ax2.axis('off')
-            self.ax2.set_aspect('equal')
-            self.ax2.title.set_text(str(self.idx) + "  " + self.gt_file_path)
-            self.ax2.title.set_color('w')  
-            self.ax2.imshow(np.clip((overlapped_radar + self.viz_raw_radar * 2) / 2., 0, 1.), cmap="jet")
+            if self.ax2 is not None:
+                self.ax2.clear()
+                self.ax2.axis('off')
+                self.ax2.set_aspect('equal')
+                self.ax2.title.set_text(str(self.idx))
+                self.ax2.title.set_color('w')  
+                self.ax2.imshow(np.clip((overlapped_radar + self.viz_raw_radar * 2) / 2., 0, 1.), cmap="jet")
 
             self.ax.clear()
             self.ax.axis('off')

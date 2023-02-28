@@ -14,8 +14,7 @@ parser.add_argument('--modelpath', default='str', help='Model path that would be
 parser.add_argument('--mcdrop', action='store_true', help='Whether to enable mcdropout model')
 args = parser.parse_args()
 
-fig, (ax, ax2) = plt.subplots(1, 2, figsize=(12, 12), facecolor=(0,0,0))
-plt.tight_layout()
 
-motionInterface = MotionLabelInterface(fig, ax, ax2, dataset_root, data_root, filename, args)
+
+motionInterface = MotionLabelInterface(dataset_root, data_root, filename, args)
 motionInterface.label()
