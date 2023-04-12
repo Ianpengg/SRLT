@@ -32,7 +32,16 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.setLayout(self.ui.layout)
         self.setWindowTitle("SR Label")
         self.setGeometry(2000, 100, self.width, self.height+100)
-        
+
+        # setup the slider tick and minimum accroding to the train/test split
+        # for train the tick = 2, for test tick = 1
+        if self.mode == "train":
+            self.ui.tl_slider.setSingleStep(2)
+        elif self.mode == "test":
+            self.ui.tl_slider.setSingleStep(1)
+        self.ui.tl_slider.setMinimum(self.cursor)
+        self.ui.tl_slider.setMaximum(self.num_frames-1)
+
         self.setup_control()
 
         self.ui.tl_slider.setMaximum(self.num_frames-1)
