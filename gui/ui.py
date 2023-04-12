@@ -42,7 +42,7 @@ class Ui_main_widget(object):
         self.tl_slider.setMinimum(0)
         self.tl_slider.setValue(0)
         self.tl_slider.setTickPosition(QSlider.TicksBelow)
-        self.tl_slider.setTickInterval(1)
+        self.tl_slider.setTickInterval(10)
 
         #Brush size slider
                 
