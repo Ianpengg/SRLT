@@ -91,6 +91,11 @@ class Ui_main_widget(object):
         self.ts_log.setMaximumHeight(40)
         self.ts_log.setReadOnly(True)
 
+        # set the font size to 17
+        font =  self.ts_log.font()
+        font.setPointSize(17)
+        self.ts_log.setFont(font)
+
         # Console on the GUI
         self.console = QPlainTextEdit()
         self.console.setMinimumSize(QtCore.QSize(100, 100))
