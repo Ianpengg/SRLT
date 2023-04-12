@@ -55,7 +55,7 @@ class Ui_main_widget(object):
         self.brush_size_bar.setTickInterval(1)
 
 
-        self.brush_size_label = QLabel()
+        self.brush_size_label = QLabel("Brush Size: 1")
         self.brush_size_label.setMinimumWidth(100)
         self.brush_size_label.setAlignment(Qt.AlignCenter)
 
@@ -81,6 +81,8 @@ class Ui_main_widget(object):
 
         self.zoom_m_button = QPushButton('Zoom -')
 
+        self.finish_local_button = QPushButton('Finish Local')
+        self.finish_local_button.setDisabled(True)
         # Record the current timestamp information
 
         self.ts_label = QLabel("Timestamp:")
@@ -128,6 +130,7 @@ class Ui_main_widget(object):
         self.interact_botbox.addWidget(self.brush_size_bar)
         self.interact_subbox.addLayout(self.interact_topbox)
         self.interact_subbox.addLayout(self.interact_botbox)
+        self.navi.addLayout(self.interact_subbox)
 
         self.navi.addStretch(1)
         self.navi.addWidget(self.undo_button)
@@ -161,6 +164,7 @@ class Ui_main_widget(object):
         minimap_ctrl.setAlignment(Qt.AlignTop)
         minimap_ctrl.addWidget(self.zoom_p_button)
         minimap_ctrl.addWidget(self.zoom_m_button)
+        minimap_ctrl.addWidget(self.finish_local_button)
 
         ts_record.setAlignment(Qt.AlignLeft)
         ts_record.addWidget(self.ts_label)
