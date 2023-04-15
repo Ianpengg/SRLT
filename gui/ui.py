@@ -16,17 +16,12 @@ from PyQt5.QtWidgets import (QWidget, QApplication, QComboBox,
     QShortcut, QRadioButton, QProgressBar, QFileDialog)
 class Ui_main_widget(object):
     def setupUi(self, main_widget):
-        #main_widget.setObjectName("SR Label")
-        #main_widget.resize(1518, 869)
-        # self.width = width
-        # self.height = height
-        # print(self.width)
 
         # Some buttons
         self.play_button = QPushButton("Play")
         self.undo_button = QPushButton("Undo")
         self.reset_button = QPushButton("Reset")
-
+        self.eraser_button = QPushButton("Eraser")
         self.model_button = QPushButton("Model")
         self.infer_button = QPushButton("Inference")
         self.save_button = QPushButton("Save")
@@ -133,6 +128,7 @@ class Ui_main_widget(object):
         self.navi.addLayout(self.interact_subbox)
 
         self.navi.addStretch(1)
+        self.navi.addWidget(self.eraser_button)
         self.navi.addWidget(self.undo_button)
         self.navi.addWidget(self.reset_button)
 
@@ -191,22 +187,4 @@ class Ui_main_widget(object):
         self.timer.setSingleShot(False)
 
 
-        # self.retranslateUi(main_widget)
-        # QtCore.QMetaObject.connectSlotsByName(main_widget)
 
-    # def retranslateUi(self, main_widget):
-    #     _translate = QtCore.QCoreApplication.translate
-    #     main_widget.setWindowTitle(_translate("main_widget", "SR Label"))
-    #     self.main_canvas.setText(_translate("main_widget", "TextLabel"))
-    #     self.mini_label_2.setText(_translate("main_widget", "Minimap"))
-    #     self.zoom_p_button_2.setText(_translate("main_widget", "Zoom +"))
-    #     self.zoom_m_button_2.setText(_translate("main_widget", "Zoom -"))
-    #     self.mini_map_2.setText(_translate("main_widget", "TextLabel"))
-    #     self.ts_label_2.setText(_translate("main_widget", "Timestamp:"))
-    #     self.play_button_2.setText(_translate("main_widget", "Play"))
-    #     self.brush_size_label.setText(_translate("main_widget", "Brush Size: 1"))
-    #     self.undo_button_2.setText(_translate("main_widget", "Undo"))
-    #     self.reset_button_2.setText(_translate("main_widget", "Reset"))
-    #     self.model_button.setText(_translate("main_widget", "Load Model"))
-    #     self.infer_button.setText(_translate("main_widget", "Inference"))
-    #     self.save_button.setText(_translate("main_widget", "Save"))

@@ -1,7 +1,7 @@
 import numpy as np
 import os
 import sys
-
+import cv2
 def find(s, ch):
     return [i for i, ltr in enumerate(s) if ltr == ch]
     
@@ -32,4 +32,6 @@ def load_image(file_path, id):
 def load_mask(file_path, id):
     data = load_data(file_path, id)
     mask = data['gt_moving']
+    mask[mask > 0] = 1
+    
     return mask
