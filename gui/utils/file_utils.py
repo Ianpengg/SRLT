@@ -1,7 +1,6 @@
 import numpy as np
 import os
 import sys
-import cv2
 def find(s, ch):
     return [i for i, ltr in enumerate(s) if ltr == ch]
     
