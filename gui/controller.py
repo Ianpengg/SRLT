@@ -208,7 +208,7 @@ class MainWindow_controller(QtWidgets.QWidget):
         if self.ui.timer.isActive():
             self.ui.timer.stop()
         else:
-            self.ui.timer.start(1000 / 25)
+            self.ui.timer.start(1500 / 25)
 
     def on_prev(self):
         self.prev_flag = True 
