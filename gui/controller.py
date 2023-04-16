@@ -102,7 +102,7 @@ class MainWindow_controller(QtWidgets.QWidget):
     def setup_control(self, ):
         self.ui.tl_slider.valueChanged.connect(self.tl_slide)
         self.ui.brush_size_bar.valueChanged.connect(self.brush_slide)
-
+        self.ui.undo_button.clicked.connect(self.on_undo)
         self.ui.timer.timeout.connect(self.on_time)
         self.ui.reset_button.clicked.connect(self.on_reset)
         self.ui.play_button.clicked.connect(self.on_play)
@@ -186,6 +186,60 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.cursor = min(self.cursor+1, self.num_frames-1)
         self.ui.tl_slider.setValue(self.cursor)
 
+    def on_undo(self):
+        print("self.vis_his", len(self.vis_hist))
+        if self.interaction is None:
+            if len(self.this_frame_interactions) > 1:
+                self.this_frame_interactions = self.this_frame_interactions[:-1]
+                self.interacted_mask = self.this_frame_interactions[-1].update()
+            else:
+                print("1")
+                self.reset_this_interaction()
+            #     self.interacted_mask = self.processor.prob[:, self.cursur].clone()
+        else:
+            if self.interaction.can_undo():
+                print("2")
+                self.interacted_mask = self.interaction.undo()
+            else:
+                if len(self.this_frame_interactions) > 0:
+                    self.interaction = None
+                    print("3")
+                    self.interacted_mask = self.this_frame_interactions[-1].update()
+                else:
+                    print("4")
+                    self.reset_this_interaction()
+                   
+                
+
+        # Update visualization
+        if len(self.vis_hist) > 0:
+            # Might be empty if we are undoing the entire interaction
+            #self.vis_map, self.vis_alpha = self.vis_hist.pop()
+            pass
+        # Commit changes
+        
+        self.update_interacted_mask()
+
+    def on_brsize_plus(self):
+        self.brush_size += 1
+        self.brush_size = min(self.brush_size, self.ui.brush_size_bar.maximum())
+        self.ui.brush_size_bar.setValue(self.brush_size)
+        self.brush_slide()
+        self.clear_brush()
+        self.vis_brush(self.last_ex, self.last_ey)
+        self.update_interact_vis()
+        self.update_minimap()
+
+    def on_brsize_minus(self):
+        self.brush_size -= 1
+        self.brush_size = max(self.brush_size, 1)
+        self.ui.brush_size_bar.setValue(self.brush_size)
+        self.brush_slide()
+        self.clear_brush()
+        self.vis_brush(self.last_ex, self.last_ey)
+        self.update_interact_vis()
+        self.update_minimap()
+        
     def console_push_text(self, text):
         text = '[A: %s, U: %s]: %s' % (self.algo_timer.format(), self.user_timer.format(), text)
         self.ui.console.appendPlainText(text)
@@ -206,26 +260,7 @@ class MainWindow_controller(QtWidgets.QWidget):
             pass
         #self.interaction.set_size(self.brush_size)
     
-    def on_brsize_plus(self):
-        self.brush_size += 1
-        self.brush_size = min(self.brush_size, self.ui.brush_size_bar.maximum())
-        self.ui.brush_size_bar.setValue(self.brush_size)
-        self.brush_slide()
-        self.clear_brush()
-        self.vis_brush(self.last_ex, self.last_ey)
-        self.update_interact_vis()
-        self.update_minimap()
-
-
-    def on_brsize_minus(self):
-        self.brush_size -= 1
-        self.brush_size = max(self.brush_size, 1)
-        self.ui.brush_size_bar.setValue(self.brush_size)
-        self.brush_slide()
-        self.clear_brush()
-        self.vis_brush(self.last_ex, self.last_ey)
-        self.update_interact_vis()
-        self.update_minimap()
+    
 
     def tl_slide(self):
         if self.waiting_to_start:
@@ -258,6 +293,8 @@ class MainWindow_controller(QtWidgets.QWidget):
         
         self.image = load_image(self.files_path, self.cursor)
         if not self.is_edited[self.cursor]:
+            # self.vis_hist.append((self.vis_map.copy(), self.vis_alpha.copy()))
+
             self.current_mask[self.cursor] = load_mask(self.files_path, self.cursor)
         self.viz = overlay_moving_mask(self.image, self.current_mask[self.cursor])
 
@@ -309,7 +346,7 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.update_minimap()
         self.ui.frame_log.setText(f"{self.cursor}/ {self.num_frames-1}")
         self.ui.tl_slider.setValue(self.cursor)
-    
+        
     def setBrushSize(self):
         self.ui.brush_size_label.setText(f"Brush Size: {self.ui.brush_size_bar.value()}")
     
@@ -393,7 +430,7 @@ class MainWindow_controller(QtWidgets.QWidget):
 
         self.interacted_mask = interaction.update()
         self.update_interacted_mask()
-
+        print("VIS_H", len(self.vis_hist))
         self.pressed = self.ctrl_key = self.right_click = False
         self.ui.undo_button.setDisabled(False)
         self.user_timer.start()
@@ -428,26 +465,18 @@ class MainWindow_controller(QtWidgets.QWidget):
             self.algo_timer.start()
             self.user_timer.start()
             self.console_push_text('Timers started.')
-
         self.user_timer.pause()
-        ex, ey = self.get_scaled_pos(event.x(), event.y())
-        #print("ex, ey", ex, ey)
-        # Check for ctrl key
-        modifiers = QApplication.keyboardModifiers()
-
         self.ctrl_key = False
 
         self.pressed = True
         self.right_click = (event.button() != 1)
-
         self.vis_hist.append((self.vis_map.copy(), self.vis_alpha.copy()))
-
+        
         last_interaction = self.interaction
         
         new_interaction = None
         if self.curr_interaction == 'Free':
             if last_interaction is None or type(last_interaction) != FreeInteraction:
-                print("ASDASDADS")
                 self.complete_interaction()
                 self.mask = load_mask(self.files_path, self.cursor)
                 new_interaction = FreeInteraction(self.interacted_mask, self.mask, 
@@ -461,7 +490,6 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.user_timer.start()
         
     def wheelEvent(self, event):
-        ex, ey = self.get_scaled_pos(event.x(), event.y())
         if event.angleDelta().y() > 0:
             self.on_zoom_plus()
         else:
