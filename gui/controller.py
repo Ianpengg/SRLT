@@ -420,6 +420,11 @@ class MainWindow_controller(QtWidgets.QWidget):
             self.interacted_mask = np.zeros((self.num_objects, self.height, self.width), dtype=np.uint8)
             self.interacted_mask[0] = load_mask(self.files_path, self.cursor)
             self.ui.undo_button.setDisabled(False)
+        else:
+            self.interacted_mask = np.zeros((self.num_objects, self.height, self.width), dtype=np.uint8)
+
+            self.interacted_mask[0] = load_mask(self.files_path, self.cursor)
+            self.ui.undo_button.setDisabled(False)
 
     def reset_this_interaction(self):
         self.complete_interaction()
