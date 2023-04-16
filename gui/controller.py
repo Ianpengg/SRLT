@@ -129,7 +129,6 @@ class MainWindow_controller(QtWidgets.QWidget):
         QShortcut(QKeySequence(Qt.Key_R), self).activated.connect(self.on_reset)
         QShortcut(QKeySequence(Qt.Key_E), self).activated.connect(self.on_erase)
     
-    
 
     def on_zoom_plus(self):
         self.zoom_pixels -= 25
@@ -142,13 +141,6 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.update_minimap() 
 
 
-    def set_navi_enable(self, boolean):
-        self.ui.zoom_p_button.setEnabled(boolean)
-        self.ui.zoom_m_button.setEnabled(boolean)
-        self.ui.infer_button.setEnabled(boolean)
-        self.ui.tl_slider.setEnabled(boolean)
-        self.ui.play_button.setEnabled(boolean)
-        self.ui.frame_log.setEnabled(boolean) 
             
     def on_time(self):
         self.cursor += 1
