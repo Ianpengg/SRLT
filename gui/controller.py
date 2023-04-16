@@ -177,7 +177,6 @@ class MainWindow_controller(QtWidgets.QWidget):
 
     def on_prev(self):
         # self.tl_slide will trigger on setValue
-        print(self.cursor)
         self.cursor = max(2, self.cursor-1)
         self.ui.tl_slider.setValue(self.cursor)
 
@@ -187,36 +186,13 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.ui.tl_slider.setValue(self.cursor)
 
     def on_undo(self):
-        print("self.vis_his", len(self.vis_hist))
-        if self.interaction is None:
-            if len(self.this_frame_interactions) > 1:
-                self.this_frame_interactions = self.this_frame_interactions[:-1]
-                self.interacted_mask = self.this_frame_interactions[-1].update()
-            else:
-                print("1")
-                self.reset_this_interaction()
-            #     self.interacted_mask = self.processor.prob[:, self.cursur].clone()
+
+        if self.interaction.can_undo():
+            self.interacted_mask = self.interaction.undo()
         else:
-            if self.interaction.can_undo():
-                print("2")
-                self.interacted_mask = self.interaction.undo()
-            else:
-                if len(self.this_frame_interactions) > 0:
-                    self.interaction = None
-                    print("3")
-                    self.interacted_mask = self.this_frame_interactions[-1].update()
-                else:
-                    print("4")
-                    self.reset_this_interaction()
-                   
+            self.reset_this_interaction()
                 
 
-        # Update visualization
-        if len(self.vis_hist) > 0:
-            # Might be empty if we are undoing the entire interaction
-            #self.vis_map, self.vis_alpha = self.vis_hist.pop()
-            pass
-        # Commit changes
         
         self.update_interacted_mask()
 
@@ -394,7 +370,10 @@ class MainWindow_controller(QtWidgets.QWidget):
             self.interactions['interact'][self.cursor].append(self.interaction)
             self.this_frame_interactions.append(self.interaction)
             self.interaction = None
+
+            # reload the saved mask
             self.interacted_mask = np.zeros((self.num_objects, self.height, self.width), dtype=np.uint8)
+            self.interacted_mask[0] = load_mask(self.files_path, self.cursor)
             self.ui.undo_button.setDisabled(False)
 
     def reset_this_interaction(self):
@@ -430,7 +409,6 @@ class MainWindow_controller(QtWidgets.QWidget):
 
         self.interacted_mask = interaction.update()
         self.update_interacted_mask()
-        print("VIS_H", len(self.vis_hist))
         self.pressed = self.ctrl_key = self.right_click = False
         self.ui.undo_button.setDisabled(False)
         self.user_timer.start()

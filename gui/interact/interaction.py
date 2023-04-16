@@ -49,7 +49,7 @@ class FreeInteraction(Interaction):
     
         self.drawn_mask = deepcopy(prev_mask).astype(np.uint8)
         self.drawn_mask[0] = initial_mask
-        self.initial_mask = initial_mask
+        self.current_mask = None
         self.curr_path = [[] for _ in range(self.K + 1)]
         self.all_paths = [self.curr_path]
 
@@ -103,33 +103,24 @@ class FreeInteraction(Interaction):
     def end_path(self):
         self.curr_path = [[] for _ in range(self.K + 1)]
         self.all_paths.append(self.curr_path)
-        self.history.append(self.drawn_mask.copy())
-        print("self.histo", len(self.history))
-        self.surplus_history = True
+        if self.current_mask is None:
+            self.current_mask = self.drawn_mask.copy()
+        else:
+            self.history.append(self.current_mask.copy())
+            self.current_mask = self.drawn_mask.copy()
 
     def undo(self):
-        print("curr_vis", len(self.history))
-        # pop the current path (which is empty) and the last path
-        # if self.surplus_history:
-        #     self.history.pop()
-        #     self.surplus_history = False
-        self.current = self.history.pop()
-        if (len(self.history) > 0):
-            self.drawn_mask = self.history[-1]
-        else:
-            self.drawn_mask[0] =  self.initial_mask
-        print("self.histo pop", len(self.history))
+
+        self.current_mask = self.history.pop()
         self.all_paths = self.all_paths[:-2]
         self.curr_path = [[] for _ in range(self.K + 1)]
         self.all_paths.append(self.curr_path)
-        cv2.imshow("map", self.drawn_mask[0]*255)
-        cv2.waitKey(100)
-        return self.drawn_mask
+        # cv2.imshow("map", self.current_mask[0]*255)
+        # cv2.waitKey(100)
+        return self.current_mask
 
     def can_undo(self):
-        print("left undo", len(self.history))
         return (len(self.history) > 0)
     
     def update(self):
-
         return self.drawn_mask
