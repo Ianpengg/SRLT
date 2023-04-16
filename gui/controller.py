@@ -1,11 +1,11 @@
 import numpy as np
 import cv2
 from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtGui import QPixmap, QKeySequence, QImage, QTextCursor
+from PyQt5.QtGui import QPixmap, QKeySequence, QImage, QTextCursor, QIcon
 from PyQt5.QtWidgets import (QWidget, QApplication, QComboBox, 
     QHBoxLayout, QLabel, QPushButton, QTextEdit, 
     QPlainTextEdit, QVBoxLayout, QSizePolicy, QButtonGroup, QSlider, 
-    QShortcut, QRadioButton, QProgressBar, QFileDialog)
+    QShortcut, QRadioButton, QProgressBar, QFileDialog, QMessageBox)
 from PyQt5.QtCore import Qt, QTimer
 
 from .ui import Ui_main_widget
@@ -85,7 +85,12 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.current_object = 1
         self.last_ex = self.last_ey = 0
         self.ctrl_key = False
-        #self.interacted_mask = None
+
+        self.auto_save_mode = False
+        self.next_flag = False
+        self.prev_flag = False
+        self.play_flag = False
+        self.is_saved_flag = False
         self.interacted_mask = np.zeros((self.num_objects, self.height, self.width), dtype=np.uint8)
         self.showCurrentFrame()
         self.timestamp_push_text() 
@@ -109,7 +114,8 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.ui.zoom_m_button.clicked.connect(self.on_zoom_minus)
         self.ui.zoom_p_button.clicked.connect(self.on_zoom_plus)
         self.ui.eraser_button.clicked.connect(self.on_erase)
-
+        self.ui.save_button.clicked.connect(self.on_save)
+        self.ui.auto_save_btn.stateChanged.connect(self.set_auto_save_mode)
         #setup the mouse event on main_canvas
         self.ui.main_canvas.mousePressEvent = self.on_press
         self.ui.main_canvas.mouseMoveEvent = self.on_motion
@@ -140,7 +146,42 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.zoom_pixels = min(self.zoom_pixels, 300)
         self.update_minimap() 
 
+    def set_auto_save_mode(self, state):
+        if state == 0:
+            self.auto_save_mode = False
+            self.ui.play_button.setDisabled(False)
+        else:
+            self.auto_save_mode = True
+            self.ui.play_button.setDisabled(True)
 
+
+    def set_continue(self):
+
+        if not self.auto_save_mode:
+            msg_box = QMessageBox(self)
+            msg = self.tr('You have unsaved changes. Do you want to save before proceeding?')
+            answer = msg_box.question(
+                self,
+                self.tr("Save annotations?"),
+                msg,
+                msg_box.Save | msg_box.Discard | msg_box.Cancel,
+                msg_box.Save,
+                )
+            if answer == msg_box.Save:
+                self.on_save()        
+                return True
+            elif answer == msg_box.Discard:
+                return True
+            elif answer == msg_box.Cancel:
+                return False
+        else:
+            self.on_save() 
+            return True
+        
+    def on_save(self):
+        self.is_saved_flag = True
+        save_mask(self.files_path, self.cursor, self.interacted_mask[0])    
+        self.console_push_text(f'{self.files_path + str(self.cursor) }.npy Saved.')   
             
     def on_time(self):
         self.cursor += 1
@@ -163,20 +204,30 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.showCurrentFrame()
 
     def on_play(self):
+        self.play_flag = True if self.play_flag == False else False
         if self.ui.timer.isActive():
             self.ui.timer.stop()
         else:
             self.ui.timer.start(1000 / 25)
 
     def on_prev(self):
-        # self.tl_slide will trigger on setValue
-        self.cursor = max(2, self.cursor-1)
-        self.ui.tl_slider.setValue(self.cursor)
-
-    def on_next(self):
-        # self.tl_slide will trigger on setValue
-        self.cursor = min(self.cursor+1, self.num_frames-1)
-        self.ui.tl_slider.setValue(self.cursor)
+        self.prev_flag = True 
+        if self.is_saved_flag:
+            self.cursor = max(2, self.cursor-1)
+            self.ui.tl_slider.setValue(self.cursor)
+        elif not self.is_saved_flag and self.set_continue():
+            self.cursor = max(2, self.cursor-1)
+            self.ui.tl_slider.setValue(self.cursor)
+            
+    def on_next(self): 
+        self.next_flag = True
+        if self.is_saved_flag:
+            self.cursor = min(self.cursor+1, self.num_frames-1)
+            self.ui.tl_slider.setValue(self.cursor)
+        elif not self.is_saved_flag and self.set_continue()  :
+            self.cursor = min(self.cursor+1, self.num_frames-1)
+            self.ui.tl_slider.setValue(self.cursor)
+ 
 
     def on_undo(self):
 
@@ -237,12 +288,13 @@ class MainWindow_controller(QtWidgets.QWidget):
             self.algo_timer.start()
             self.user_timer.start()
             self.console_push_text('Timers started.')
-
+        self.is_saved_flag = False
+        self.prev_flag = False
+        self.next_flag = False
         self.reset_this_interaction()
         self.cursor = self.ui.tl_slider.value()
     
         self.showCurrentFrame()
-        self.console_push_text(self.files_path + str(self.cursor) + '.npy')
         self.timestamp_push_text()
 
     def clear_brush(self):
