@@ -157,11 +157,12 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.ui.tl_slider.setValue(self.cursor)
 
     def on_erase(self):
-        
         self.draw_mode = "erase" if self.draw_mode == "draw" else "draw"
-
-
-
+        if self.draw_mode == "erase":
+            self.console_push_text('Enter erase mode.')
+        else:
+            self.console_push_text('Enter draw mode.')
+            
     def on_reset(self):
         # DO not edit prob -- we still need the mask diff
       
