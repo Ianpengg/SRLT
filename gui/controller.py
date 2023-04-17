@@ -135,7 +135,11 @@ class MainWindow_controller(QtWidgets.QWidget):
 
         QShortcut(QKeySequence(Qt.Key_R), self).activated.connect(self.on_reset)
         QShortcut(QKeySequence(Qt.Key_E), self).activated.connect(self.on_erase)
-    
+        QShortcut(QKeySequence('Ctrl+S'), self).activated.connect(self.on_save)
+        QShortcut(QKeySequence('Ctrl+Z'), self).activated.connect(self.on_undo)
+
+
+
 
     def on_zoom_plus(self):
         self.zoom_pixels -= 25
