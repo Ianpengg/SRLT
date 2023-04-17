@@ -43,12 +43,12 @@ class Interaction:
         pass
 
 class FreeInteraction(Interaction):
-    def __init__(self, prev_mask, initial_mask, num_objects,):
+    def __init__(self, prev_mask, initial_mask, num_objects, processor=None):
         super().__init__(None, prev_mask, None, None)
         self.K = num_objects
-    
+        self.processor = processor
         self.drawn_mask = deepcopy(prev_mask).astype(np.uint8)
-        self.drawn_mask[0] = initial_mask
+        # self.drawn_mask[0] = initial_mask
         self.current_mask = None
         self.curr_path = [[] for _ in range(self.K + 1)]
         self.all_paths = [self.curr_path]
@@ -115,8 +115,7 @@ class FreeInteraction(Interaction):
         self.all_paths = self.all_paths[:-2]
         self.curr_path = [[] for _ in range(self.K + 1)]
         self.all_paths.append(self.curr_path)
-        # cv2.imshow("map", self.current_mask[0]*255)
-        # cv2.waitKey(100)
+
         return self.current_mask
 
     def can_undo(self):
@@ -124,3 +123,17 @@ class FreeInteraction(Interaction):
     
     def update(self):
         return self.drawn_mask
+
+    def predict(self, data):
+        predict_mask = self.processor.inference(data)
+        
+        # to store the predicted mask in same format as drawn_mask
+        # use this to store the predicted mask in the history
+        final_mask = np.zeros_like(self.drawn_mask)
+        final_mask[0] = predict_mask
+        if self.current_mask is None:
+            self.current_mask = self.final_mask.copy()
+        else:
+            self.history.append(self.current_mask.copy())
+            self.current_mask = self.drawn_mask.copy()
+        return predict_mask
