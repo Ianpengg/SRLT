@@ -15,6 +15,7 @@ from .utils.gui_utils import overlay_moving_mask
 from .utils.file_utils import *
 from .btn_controller import ButtonController
 from .inference_core import Inference_core
+from .shortcut import Shortcut
 
 class MainWindow_controller(QtWidgets.QWidget):
     def __init__(self, files_path, timestamps):
@@ -30,7 +31,8 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.image = load_image(files_path, self.cursor) 
         self.mask = load_mask(files_path, self.cursor)
         self.width, self.height = self.image.shape[:2]
-        
+        self.Buttoncontroller = ButtonController(self)
+        self.Shortcut = Shortcut(self, self.Buttoncontroller)
         self.processor = Inference_core()
         self.ui = Ui_main_widget()
         self.ui.setupUi(self)
@@ -48,7 +50,6 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.ui.tl_slider.setMaximum(self.num_frames-1)
         self.ui.brush_size_bar.setMaximum(100)
 
-        self.btn_controller = ButtonController(self.ui, self.cursor)
         self.setup_control()
 
         #self.resize(self.width, self.height) 
@@ -109,40 +110,24 @@ class MainWindow_controller(QtWidgets.QWidget):
     def setup_control(self, ):
         self.ui.tl_slider.valueChanged.connect(self.tl_slide)
         self.ui.brush_size_bar.valueChanged.connect(self.brush_slide)
-        self.ui.undo_button.clicked.connect(self.on_undo)
-        self.ui.timer.timeout.connect(self.on_time)
-        self.ui.reset_button.clicked.connect(self.on_reset)
-        self.ui.play_button.clicked.connect(self.on_play)
-        self.ui.zoom_m_button.clicked.connect(self.on_zoom_minus)
-        self.ui.zoom_p_button.clicked.connect(self.on_zoom_plus)
-        self.ui.eraser_button.clicked.connect(self.on_erase)
-        self.ui.save_button.clicked.connect(self.on_save)
+        self.ui.undo_button.clicked.connect(self.Buttoncontroller.on_undo)
+        self.ui.timer.timeout.connect(self.Buttoncontroller.on_time)
+        self.ui.reset_button.clicked.connect(self.Buttoncontroller.on_reset)
+        self.ui.play_button.clicked.connect(self.Buttoncontroller.on_play)
+        self.ui.zoom_m_button.clicked.connect(self.Buttoncontroller.on_zoom_minus)
+        self.ui.zoom_p_button.clicked.connect(self.Buttoncontroller.on_zoom_plus)
+        self.ui.eraser_button.clicked.connect(self.Buttoncontroller.on_erase)
+        self.ui.save_button.clicked.connect(self.Buttoncontroller.on_save)
         self.ui.auto_save_btn.stateChanged.connect(self.set_auto_save_mode)
         self.ui.model_button.clicked.connect(self.load_model)
-        self.ui.infer_button.clicked.connect(self.on_infer)
+        self.ui.infer_button.clicked.connect(self.Buttoncontroller.on_infer)
+
         self.ui.infer_button.setEnabled(False)
 
         #setup the mouse event on main_canvas
         self.ui.main_canvas.mousePressEvent = self.on_press
         self.ui.main_canvas.mouseMoveEvent = self.on_motion
         self.ui.main_canvas.mouseReleaseEvent = self.on_release
-        
-        # Use to control go next and prev
-        QShortcut(QKeySequence(Qt.Key_A), self).activated.connect(self.on_prev)
-        QShortcut(QKeySequence(Qt.Key_D), self).activated.connect(self.on_next)
-        
-        # Use to control play and pause
-        QShortcut(QKeySequence('p'), self).activated.connect(self.on_play)
-
-        # Use to control brush_size
-        QShortcut(QKeySequence(Qt.Key_1), self).activated.connect(self.on_brsize_minus)
-        QShortcut(QKeySequence(Qt.Key_2), self).activated.connect(self.on_brsize_plus)
-
-        QShortcut(QKeySequence(Qt.Key_R), self).activated.connect(self.on_reset)
-        QShortcut(QKeySequence(Qt.Key_E), self).activated.connect(self.on_erase)
-        QShortcut(QKeySequence('Ctrl+S'), self).activated.connect(self.on_save)
-        QShortcut(QKeySequence('Ctrl+Z'), self).activated.connect(self.on_undo)
-        QShortcut(QKeySequence(Qt.Key_I), self).activated.connect(self.on_infer)
 
 
     def load_model(self):
@@ -161,32 +146,6 @@ class MainWindow_controller(QtWidgets.QWidget):
         except FileNotFoundError:
             self.console_push_text("Failed to load model... check the model path is correct")
     
-    def on_infer(self):
-        if self.processor.model is not None:
-            # infer the current frame
-            data = load_data(self.files_path, self.cursor)
-            # if there is no interaction, create a new one
-            if self.interaction is None:
-                self.interaction = FreeInteraction(self.interacted_mask, self.mask, 
-                            self.num_objects, self.processor)
-                self.interacted_mask[0] = self.interaction.predict(data)
-                self.ui.undo_button.setDisabled(False)
-                
-            else :
-                self.interacted_mask[0] = self.interaction.predict(data)
-
-            self.update_interacted_mask()      
-
-    def on_zoom_plus(self):
-        self.zoom_pixels -= 25
-        self.zoom_pixels = max(50, self.zoom_pixels)
-        self.update_minimap()
-
-    def on_zoom_minus(self):
-        self.zoom_pixels += 25
-        self.zoom_pixels = min(self.zoom_pixels, 300)
-        self.update_minimap() 
-
     def set_auto_save_mode(self, state):
         if state == 0:
             self.auto_save_mode = False
@@ -209,96 +168,16 @@ class MainWindow_controller(QtWidgets.QWidget):
                 msg_box.Save,
                 )
             if answer == msg_box.Save:
-                self.on_save()        
+                self.Buttoncontroller.on_save()        
                 return True
             elif answer == msg_box.Discard:
                 return True
             elif answer == msg_box.Cancel:
                 return False
         else:
-            self.on_save() 
+            self.Buttoncontroller.on_save() 
             return True
         
-    def on_save(self):
-        self.is_saved_flag = True
-        save_mask(self.files_path, self.cursor, self.interacted_mask[0])    
-        self.console_push_text(f'{self.files_path + str(self.cursor) }.npy Saved.')   
-            
-    def on_time(self):
-        self.cursor += 1
-        if self.cursor > self.num_frames-1:
-            self.cursor = 0
-        self.ui.tl_slider.setValue(self.cursor)
-
-    def on_erase(self):
-        self.draw_mode = "erase" if self.draw_mode == "draw" else "draw"
-        if self.draw_mode == "erase":
-            self.console_push_text('Enter erase mode.')
-        else:
-            self.console_push_text('Enter draw mode.')
-            
-    def on_reset(self):
-        # DO not edit prob -- we still need the mask diff
-      
-        self.current_mask[self.cursor] = load_mask(self.files_path, self.cursor)
-        self.reset_this_interaction()
-        self.showCurrentFrame()
-
-    def on_play(self):
-        self.play_flag = True if self.play_flag == False else False
-        if self.ui.timer.isActive():
-            self.ui.timer.stop()
-        else:
-            self.ui.timer.start(1500 / 25)
-
-    def on_prev(self):
-        self.prev_flag = True 
-        if self.is_saved_flag:
-            self.cursor = max(2, self.cursor-1)
-            self.ui.tl_slider.setValue(self.cursor)
-        elif not self.is_saved_flag and self.set_continue():
-            self.cursor = max(2, self.cursor-1)
-            self.ui.tl_slider.setValue(self.cursor)
-            
-    def on_next(self): 
-        self.next_flag = True
-        if self.is_saved_flag:
-            self.cursor = min(self.cursor+1, self.num_frames-1)
-            self.ui.tl_slider.setValue(self.cursor)
-        elif not self.is_saved_flag and self.set_continue()  :
-            self.cursor = min(self.cursor+1, self.num_frames-1)
-            self.ui.tl_slider.setValue(self.cursor)
- 
-
-    def on_undo(self):
-        if self.interaction is not None:
-            if self.interaction.can_undo():
-                self.interacted_mask = self.interaction.undo()
-            else:
-                self.reset_this_interaction() 
-        else:
-            self.reset_this_interaction()
-        self.update_interacted_mask()
-
-    def on_brsize_plus(self):
-        self.brush_size += self.brush_step
-        self.brush_size = min(self.brush_size, self.ui.brush_size_bar.maximum())
-        self.ui.brush_size_bar.setValue(self.brush_size)
-        self.brush_slide()
-        self.clear_brush()
-        self.vis_brush(self.last_ex, self.last_ey)
-        self.update_interact_vis()
-        self.update_minimap()
-
-    def on_brsize_minus(self):
-        self.brush_size -= self.brush_step
-        self.brush_size = max(self.brush_size, 1)
-        self.ui.brush_size_bar.setValue(self.brush_size)
-        self.brush_slide()
-        self.clear_brush()
-        self.vis_brush(self.last_ex, self.last_ey)
-        self.update_interact_vis()
-        self.update_minimap()
         
     def console_push_text(self, text):
         text = '[A: %s, U: %s]: %s' % (self.algo_timer.format(), self.user_timer.format(), text)
@@ -548,7 +427,7 @@ class MainWindow_controller(QtWidgets.QWidget):
                 self.complete_interaction()
                 self.mask = load_mask(self.files_path, self.cursor)
                 new_interaction = FreeInteraction(self.interacted_mask, self.mask, 
-                            self.num_objects)
+                            self.num_objects, self.processor)
                 new_interaction.set_size(self.brush_size)
         if new_interaction is not None:
                 self.interaction = new_interaction
@@ -559,9 +438,9 @@ class MainWindow_controller(QtWidgets.QWidget):
         
     def wheelEvent(self, event):
         if event.angleDelta().y() > 0:
-            self.on_zoom_plus()
+            self.Buttoncontroller.on_zoom_plus()
         else:
-            self.on_zoom_minus()
+            self.Buttoncontroller.on_zoom_minus()
  
 if __name__ == "__main__":
     pass
