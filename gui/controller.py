@@ -14,7 +14,7 @@ from .interact.interaction import *
 from .utils.gui_utils import overlay_moving_mask
 from .utils.file_utils import *
 from .btn_controller import ButtonController
-
+from .inference_core import Inference_core
 
 class MainWindow_controller(QtWidgets.QWidget):
     def __init__(self, files_path, timestamps):
@@ -30,7 +30,8 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.image = load_image(files_path, self.cursor) 
         self.mask = load_mask(files_path, self.cursor)
         self.width, self.height = self.image.shape[:2]
-
+        
+        self.processor = Inference_core()
         self.ui = Ui_main_widget()
         self.ui.setupUi(self)
         self.setLayout(self.ui.layout)
@@ -117,6 +118,10 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.ui.eraser_button.clicked.connect(self.on_erase)
         self.ui.save_button.clicked.connect(self.on_save)
         self.ui.auto_save_btn.stateChanged.connect(self.set_auto_save_mode)
+        self.ui.model_button.clicked.connect(self.load_model)
+        self.ui.infer_button.clicked.connect(self.on_infer)
+        self.ui.infer_button.setEnabled(False)
+
         #setup the mouse event on main_canvas
         self.ui.main_canvas.mousePressEvent = self.on_press
         self.ui.main_canvas.mouseMoveEvent = self.on_motion
@@ -137,9 +142,40 @@ class MainWindow_controller(QtWidgets.QWidget):
         QShortcut(QKeySequence(Qt.Key_E), self).activated.connect(self.on_erase)
         QShortcut(QKeySequence('Ctrl+S'), self).activated.connect(self.on_save)
         QShortcut(QKeySequence('Ctrl+Z'), self).activated.connect(self.on_undo)
+        QShortcut(QKeySequence(Qt.Key_I), self).activated.connect(self.on_infer)
 
 
+    def load_model(self):
+        # loading the model when the button is clicked
+        file_dialog = QFileDialog(self)
+        file_dialog.setNameFilter('PyTorch Model Files (*.pth)')
+        file_dialog.setFileMode(QFileDialog.ExistingFile)
 
+        if file_dialog.exec_() == QFileDialog.Accepted:
+            self.model_path = file_dialog.selectedFiles()[0]
+        try:
+            self.processor.set_model(self.model_path)
+            self.console_push_text("Loaded pretrained model from {}".format(self.model_path))
+            self.ui.infer_button.setEnabled(True)
+
+        except FileNotFoundError:
+            self.console_push_text("Failed to load model... check the model path is correct")
+    
+    def on_infer(self):
+        if self.processor.model is not None:
+            # infer the current frame
+            data = load_data(self.files_path, self.cursor)
+            # if there is no interaction, create a new one
+            if self.interaction is None:
+                self.interaction = FreeInteraction(self.interacted_mask, self.mask, 
+                            self.num_objects, self.processor)
+                self.interacted_mask[0] = self.interaction.predict(data)
+                self.ui.undo_button.setDisabled(False)
+                
+            else :
+                self.interacted_mask[0] = self.interaction.predict(data)
+
+            self.update_interacted_mask()      
 
     def on_zoom_plus(self):
         self.zoom_pixels -= 25
