@@ -13,7 +13,7 @@ from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtWidgets import (QWidget, QApplication, QComboBox, 
     QHBoxLayout, QLabel, QPushButton, QTextEdit, 
     QPlainTextEdit, QVBoxLayout, QSizePolicy, QButtonGroup, QSlider, 
-    QShortcut, QRadioButton, QProgressBar, QFileDialog)
+    QShortcut, QRadioButton, QProgressBar, QFileDialog, QCheckBox, QCheckBox)
 class Ui_main_widget(object):
     def setupUi(self, main_widget):
 
@@ -109,6 +109,7 @@ class Ui_main_widget(object):
         self.progress.setStyleSheet("QProgressBar{color: black;}")
         self.progress.setAlignment(Qt.AlignCenter)
 
+        self.auto_save_btn = QCheckBox("Auto Save")
         # navigator
         self.navi = QHBoxLayout()
         
@@ -134,6 +135,7 @@ class Ui_main_widget(object):
 
         self.navi.addStretch(1)
         self.navi.addWidget(self.progress)
+        self.navi.addWidget(self.auto_save_btn)
         self.navi.addStretch(1)
 
         self.navi.addWidget(self.model_button)
