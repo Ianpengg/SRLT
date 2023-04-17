@@ -132,7 +132,7 @@ class FreeInteraction(Interaction):
         final_mask = np.zeros_like(self.drawn_mask)
         final_mask[0] = predict_mask
         if self.current_mask is None:
-            self.current_mask = self.final_mask.copy()
+            self.current_mask = final_mask.copy()
         else:
             self.history.append(self.current_mask.copy())
             self.current_mask = self.drawn_mask.copy()
