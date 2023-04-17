@@ -84,6 +84,7 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.ctrl_size = False
         self.current_object = 1
         self.last_ex = self.last_ey = 0
+        self.brush_step = 4
         self.ctrl_key = False
 
         self.auto_save_mode = False
@@ -230,18 +231,17 @@ class MainWindow_controller(QtWidgets.QWidget):
  
 
     def on_undo(self):
-
-        if self.interaction.can_undo():
-            self.interacted_mask = self.interaction.undo()
+        if self.interaction is not None:
+            if self.interaction.can_undo():
+                self.interacted_mask = self.interaction.undo()
+            else:
+                self.reset_this_interaction() 
         else:
             self.reset_this_interaction()
-                
-
-        
         self.update_interacted_mask()
 
     def on_brsize_plus(self):
-        self.brush_size += 1
+        self.brush_size += self.brush_step
         self.brush_size = min(self.brush_size, self.ui.brush_size_bar.maximum())
         self.ui.brush_size_bar.setValue(self.brush_size)
         self.brush_slide()
@@ -251,7 +251,7 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.update_minimap()
 
     def on_brsize_minus(self):
-        self.brush_size -= 1
+        self.brush_size -= self.brush_step
         self.brush_size = max(self.brush_size, 1)
         self.ui.brush_size_bar.setValue(self.brush_size)
         self.brush_slide()
