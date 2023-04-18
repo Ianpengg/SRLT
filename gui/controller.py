@@ -28,8 +28,11 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.files_path = files_path
         self.num_frames = len(self.radar_timestamps)
         self.radar_data = load_data(files_path, self.cursor)
-        self.image = load_image(files_path, self.cursor) 
-        self.mask = load_mask(files_path, self.cursor)
+
+        self.dataloader = DataLoader(self.files_path, self.cursor)
+        self.image = self.dataloader.load_image() 
+        self.mask = self.dataloader.load_mask()
+
         self.width, self.height = self.image.shape[:2]
         self.Buttoncontroller = ButtonController(self)
         self.Shortcut = Shortcut(self, self.Buttoncontroller)
@@ -208,13 +211,22 @@ class MainWindow_controller(QtWidgets.QWidget):
             self.user_timer.start()
             self.console_push_text('Timers started.')
         self.is_saved_flag = False
-        self.prev_flag = False
-        self.next_flag = False
-        self.reset_this_interaction()
         self.cursor = self.ui.tl_slider.value()
     
-        self.showCurrentFrame()
-        self.timestamp_push_text()
+        self.dataloader = DataLoader(self.files_path, self.cursor)
+        if self.dataloader.is_valid():
+            self.reset_this_interaction()
+            self.showCurrentFrame()
+            self.timestamp_push_text()
+        else:
+            if self.prev_flag:
+                self.cursor = self.cursor - 1
+                self.ui.tl_slider.setValue(self.cursor)
+            elif self.next_flag:
+                self.cursor = self.cursor + 1
+                self.ui.tl_slider.setValue(self.cursor)
+        self.prev_flag = False
+        self.next_flag = False
 
     def clear_brush(self):
         self.brush_vis_map.fill(0)
@@ -230,12 +242,9 @@ class MainWindow_controller(QtWidgets.QWidget):
 
 
     def compose_current_im(self):
-        
-        self.image = load_image(self.files_path, self.cursor)
+        self.image = self.dataloader.load_image()
         if not self.is_edited[self.cursor]:
-            # self.vis_hist.append((self.vis_map.copy(), self.vis_alpha.copy()))
-
-            self.current_mask[self.cursor] = load_mask(self.files_path, self.cursor)
+            self.current_mask[self.cursor] = self.dataloader.load_mask()
         self.viz = overlay_moving_mask(self.image, self.current_mask[self.cursor])
 
 
@@ -337,12 +346,11 @@ class MainWindow_controller(QtWidgets.QWidget):
 
             # reload the saved mask
             self.interacted_mask = np.zeros((self.num_objects, self.height, self.width), dtype=np.uint8)
-            self.interacted_mask[0] = load_mask(self.files_path, self.cursor)
+            self.interacted_mask[0] = self.dataloader.load_mask()
             self.ui.undo_button.setDisabled(False)
         else:
             self.interacted_mask = np.zeros((self.num_objects, self.height, self.width), dtype=np.uint8)
-
-            self.interacted_mask[0] = load_mask(self.files_path, self.cursor)
+            self.interacted_mask[0] = self.dataloader.load_mask()
             self.ui.undo_button.setDisabled(False)
 
     def reset_this_interaction(self):
