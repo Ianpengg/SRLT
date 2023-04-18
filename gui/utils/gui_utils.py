@@ -1,6 +1,4 @@
 import numpy as np
-import cv2
-from .file_utils import load_data
 
 
 def overlay_moving_mask(image, mask,  alpha=0.6):
