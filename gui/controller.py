@@ -141,13 +141,15 @@ class MainWindow_controller(QtWidgets.QWidget):
 
         if file_dialog.exec_() == QFileDialog.Accepted:
             self.model_path = file_dialog.selectedFiles()[0]
-        try:
-            self.processor.set_model(self.model_path)
-            self.console_push_text("Loaded pretrained model from {}".format(self.model_path))
-            self.ui.infer_button.setEnabled(True)
 
-        except FileNotFoundError:
-            self.console_push_text("Failed to load model... check the model path is correct")
+            if self.model_path is not None:
+                try:
+                    self.processor.set_model(self.model_path)
+                    self.console_push_text("Loaded pretrained model from {}".format(self.model_path))
+                    self.ui.infer_button.setEnabled(True)
+
+                except FileNotFoundError:
+                    self.console_push_text("Failed to load model... check the model path is correct")
     
     def set_auto_save_mode(self, state):
         if state == 0:
