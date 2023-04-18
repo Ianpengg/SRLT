@@ -27,7 +27,6 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.radar_timestamps = timestamps 
         self.files_path = files_path
         self.num_frames = len(self.radar_timestamps)
-        self.radar_data = load_data(files_path, self.cursor)
 
         self.dataloader = DataLoader(self.files_path, self.cursor)
         self.image = self.dataloader.load_image() 
@@ -440,7 +439,7 @@ class MainWindow_controller(QtWidgets.QWidget):
         if self.curr_interaction == 'Free':
             if last_interaction is None or type(last_interaction) != FreeInteraction:
                 self.complete_interaction()
-                self.mask = load_mask(self.files_path, self.cursor)
+                self.mask = self.dataloader.load_mask()
                 new_interaction = FreeInteraction(self.interacted_mask, self.mask, 
                             self.num_objects, self.processor)
                 new_interaction.set_size(self.brush_size)

@@ -1,4 +1,4 @@
-from .utils.file_utils import load_image, load_mask, load_data, save_mask
+# from .utils.file_utils import load_image, load_mask, load_data, save_mask
 
 from .interact.interaction import FreeInteraction
 
@@ -11,7 +11,7 @@ class ButtonController:
 
     def on_save(self):
         self.controller.is_saved_flag = True
-        save_mask(self.controller.files_path, self.controller.cursor, self.controller.interacted_mask[0])    
+        self.controller.dataloader.save_mask(self.controller.interacted_mask[0])    
         self.controller.console_push_text(f'{self.controller.files_path + str(self.controller.cursor) }.npy Saved.')   
             
     def on_time(self):
@@ -32,7 +32,7 @@ class ButtonController:
     def on_reset(self):
         # DO not edit prob -- we still need the mask diff
       
-        self.controller.current_mask[self.controller.cursor] = load_mask(self.controller.files_path, self.controller.cursor)
+        self.controller.current_mask[self.controller.cursor] = self.controller.dataloader.load_mask()
         self.controller.reset_this_interaction()
         self.controller.showCurrentFrame()
     
@@ -77,7 +77,7 @@ class ButtonController:
     def on_infer(self):
         if self.controller.processor.model is not None:
             # infer the current frame
-            data = load_data(self.controller.files_path, self.controller.cursor)
+            data = self.controller.dataloader.load_data()
             # if there is no interaction, create a new one
             if self.controller.interaction is None:
                 self.controller.interaction = FreeInteraction(self.controller.interacted_mask, self.controller.mask, 
