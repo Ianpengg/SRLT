@@ -158,8 +158,13 @@ class MainWindow_controller(QtWidgets.QWidget):
             self.ui.play_button.setDisabled(True)
 
 
+    def set_navi_disable(self, boolean):
+        self.ui.save_button.setDisabled(boolean)
+        self.ui.model_button.setDisabled(boolean)
+        self.ui.reset_button.setDisabled(boolean)
+        self.ui.eraser_button.setDisabled(boolean)
+        
     def set_continue(self):
-
         if not self.auto_save_mode:
             msg_box = QMessageBox(self)
             msg = self.tr('You have unsaved changes. Do you want to save before proceeding?')
