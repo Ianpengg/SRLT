@@ -42,3 +42,9 @@ class Shortcut:
 
         # Use to control infer
         QShortcut(QKeySequence(Qt.Key_I), self.MainWidget).activated.connect(self.Buttoncontroller.on_infer)   
+        
+        # Use to switch between mask and current frame
+        QShortcut(QKeySequence(Qt.Key_W), self.MainWidget).activated.connect(self.Buttoncontroller.on_switch_mask)
+
+        #Use to switch between threshold image and current frame
+        QShortcut(QKeySequence(Qt.Key_Q), self.MainWidget).activated.connect(self.Buttoncontroller.on_switch_threshold)
