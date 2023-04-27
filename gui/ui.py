@@ -42,7 +42,7 @@ class Ui_main_widget(object):
         #Brush size slider
                 
         self.brush_size_bar = QSlider(Qt.Horizontal)
-        self.brush_size_bar.setMinimumWidth(300)
+        self.brush_size_bar.setMinimumWidth(150)
         self.brush_size_bar.setMinimum(1)
         self.brush_size_bar.setMaximum(4)
         self.brush_size_bar.setValue(1)
@@ -53,6 +53,41 @@ class Ui_main_widget(object):
         self.brush_size_label = QLabel("Brush Size: 1")
         self.brush_size_label.setMinimumWidth(100)
         self.brush_size_label.setAlignment(Qt.AlignCenter)
+
+        # Brightness adjust slider 
+        self.brightness_bar = QSlider(Qt.Horizontal)
+        self.brightness_bar.setMinimumWidth(150)
+        self.brightness_bar.setMinimum(0)
+        self.brightness_bar.setMaximum(100)
+        self.brightness_bar.setValue(60)
+
+
+        self.contrast_bar = QSlider(Qt.Horizontal)
+        self.contrast_bar.setMinimumWidth(150)
+        self.contrast_bar.setMinimum(0)
+        self.contrast_bar.setMaximum(100)
+        self.contrast_bar.setValue(20)
+
+        
+        self.brightness_label = QLabel("Brightness")
+        self.brightness_label.setMinimumWidth(20)
+        self.brightness_label.setAlignment(Qt.AlignCenter)
+
+        self.contrast_label = QLabel("Contrast")
+        self.contrast_label.setMinimumWidth(20)
+        self.contrast_label.setAlignment(Qt.AlignCenter)
+
+
+        self.threshold_bar = QSlider(Qt.Horizontal)
+        self.threshold_bar.setMinimumWidth(150)
+        self.threshold_bar.setMinimum(0)
+        self.threshold_bar.setMaximum(100)
+        self.threshold_bar.setValue(20)
+         
+
+        self.threshold_label = QLabel("Threshold")
+        self.threshold_label.setMinimumWidth(20)
+        self.threshold_label.setAlignment(Qt.AlignCenter)
 
 
          # Main canvas -> QLabel
@@ -102,7 +137,7 @@ class Ui_main_widget(object):
         # Progress bar
         self.progress = QProgressBar(main_widget)
         self.progress.setGeometry(0, 0, 300, 25)
-        self.progress.setMinimumWidth(300)
+        self.progress.setMinimumWidth(50)
         self.progress.setMinimum(0)
         self.progress.setMaximum(100)
         self.progress.setFormat('Idle')
@@ -127,8 +162,42 @@ class Ui_main_widget(object):
         self.interact_subbox.addLayout(self.interact_topbox)
         self.interact_subbox.addLayout(self.interact_botbox)
         self.navi.addLayout(self.interact_subbox)
+        
 
-        self.navi.addStretch(1)
+        self.image_process_subbox = QtWidgets.QVBoxLayout()
+        self.image_process_topbox = QtWidgets.QHBoxLayout()
+        self.image_process_botbox = QtWidgets.QHBoxLayout()
+
+        self.image_process_topbox_2 = QtWidgets.QHBoxLayout()
+        self.image_process_botbox_2 = QtWidgets.QHBoxLayout()
+
+
+        self.image_process_topbox.addWidget(self.brightness_label)
+        self.image_process_botbox.addWidget(self.brightness_bar)
+        self.image_process_topbox_2.addWidget(self.contrast_label)
+        self.image_process_botbox_2.addWidget(self.contrast_bar)
+
+        self.image_process_subbox.addLayout(self.image_process_topbox)
+        self.image_process_subbox.addLayout(self.image_process_botbox)
+        self.image_process_subbox.addLayout(self.image_process_topbox_2)
+        self.image_process_subbox.addLayout(self.image_process_botbox_2)
+
+        self.navi.addLayout(self.image_process_subbox)
+
+        
+        self.image_process_subbox_2 = QtWidgets.QVBoxLayout()
+        self.image_process_topbox_3 = QtWidgets.QHBoxLayout()
+        self.image_process_botbox_3 = QtWidgets.QHBoxLayout()
+
+        self.image_process_topbox_3.addWidget(self.threshold_label)
+        self.image_process_botbox_3.addWidget(self.threshold_bar)
+
+        self.image_process_subbox_2.addLayout(self.image_process_topbox_3)
+        self.image_process_subbox_2.addLayout(self.image_process_botbox_3)
+        
+        self.navi.addLayout(self.image_process_subbox_2)
+
+        #self.navi.addStretch(1)
         self.navi.addWidget(self.eraser_button)
         self.navi.addWidget(self.undo_button)
         self.navi.addWidget(self.reset_button)

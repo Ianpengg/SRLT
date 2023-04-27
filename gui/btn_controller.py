@@ -121,6 +121,29 @@ class ButtonController:
         self.controller.update_interact_vis()
         self.controller.update_minimap()
 
+    def on_switch_mask(self):
+        # set brightness to zero to show the mask
+        # set brightness back to current value to see original image 
 
+        # save current brightness
+        
+        
+        if self.controller.mask_mode:
+            self.controller.current_brightness = self.controller.ui.brightness_bar.value()
+            self.controller.ui.brightness_bar.setValue(0)
+            self.controller.mask_mode = False
+            self.controller.showCurrentFrame()
+        else:
+            self.controller.ui.brightness_bar.setValue(self.controller.current_brightness)
+            self.controller.mask_mode = True
+            self.controller.showCurrentFrame()
 
-    
+    def on_switch_threshold(self):
+        
+        if not self.controller.thres_mode:
+            self.controller.ui.threshold_bar.setValue(self.controller.threshold)
+            self.controller.thres_mode = True
+            self.controller.showCurrentFrame()
+        else:
+            self.controller.thres_mode = False
+            self.controller.showCurrentFrame()

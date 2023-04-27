@@ -13,6 +13,7 @@ from .interact.timer import Timer
 from .interact.interaction import * 
 from .utils.gui_utils import overlay_moving_mask
 from .utils.file_utils import *
+from .utils.image_method import ImageMethod
 from .btn_controller import ButtonController
 from .inference_core import Inference_core
 from .shortcut import Shortcut
@@ -36,6 +37,7 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.Buttoncontroller = ButtonController(self)
         self.Shortcut = Shortcut(self, self.Buttoncontroller)
         self.processor = Inference_core()
+        self.image_method = ImageMethod(self)
         self.ui = Ui_main_widget()
         self.ui.setupUi(self)
         self.setLayout(self.ui.layout)
@@ -50,13 +52,11 @@ class MainWindow_controller(QtWidgets.QWidget):
             self.ui.tl_slider.setSingleStep(1)
         self.ui.tl_slider.setMinimum(self.cursor)
         self.ui.tl_slider.setMaximum(self.num_frames-1)
-        self.ui.brush_size_bar.setMaximum(100)
+        self.ui.brush_size_bar.setMaximum(14)
 
         self.setup_control()
 
-        #self.resize(self.width, self.height) 
         # initialize
-        self.viz_mode = 'davis'
         self.curr_interaction = 'Free'
 
         self.current_mask = np.zeros((self.num_frames, self.height, self.width), dtype=np.uint8)
@@ -68,8 +68,10 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.on_showing = None
         self.brush_size = 1
         self.num_objects = 1
-
-
+        self.brightness = 20
+        self.contrast = 20
+        self.threshold = 20
+        self.current_brightness = 0
         # Zoom parameters
         self.zoom_pixels = 150
 
@@ -88,7 +90,7 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.ctrl_size = False
         self.current_object = 1
         self.last_ex = self.last_ey = 0
-        self.brush_step = 4
+        self.brush_step = 2
         self.ctrl_key = False
 
         self.auto_save_mode = False
@@ -96,6 +98,8 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.prev_flag = False
         self.play_flag = False
         self.is_saved_flag = False
+        self.thres_mode = False
+        self.mask_mode = True
         self.interacted_mask = np.zeros((self.num_objects, self.height, self.width), dtype=np.uint8)
         self.showCurrentFrame()
         self.timestamp_push_text() 
@@ -123,7 +127,9 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.ui.auto_save_btn.stateChanged.connect(self.set_auto_save_mode)
         self.ui.model_button.clicked.connect(self.load_model)
         self.ui.infer_button.clicked.connect(self.Buttoncontroller.on_infer)
-
+        self.ui.brightness_bar.valueChanged.connect(self.brightness_slide)
+        self.ui.contrast_bar.valueChanged.connect(self.contrast_slide)
+        self.ui.threshold_bar.valueChanged.connect(self.threshold_slide)
         self.ui.infer_button.setEnabled(False)
 
         #setup the mouse event on main_canvas
@@ -195,7 +201,18 @@ class MainWindow_controller(QtWidgets.QWidget):
 
     def timestamp_push_text(self):
         self.ui.ts_log.setText(str(self.radar_timestamps[self.cursor]))
+    
+    def brightness_slide(self):
+        self.brightness = self.ui.brightness_bar.value()
+        self.showCurrentFrame()
 
+    def threshold_slide(self):
+        self.threshold = self.ui.threshold_bar.value()
+        self.showCurrentFrame()
+
+    def contrast_slide(self):
+        self.contrast = self.ui.contrast_bar.value()
+        self.showCurrentFrame()
 
     def brush_slide(self):
         self.brush_size = self.ui.brush_size_bar.value()
@@ -249,6 +266,12 @@ class MainWindow_controller(QtWidgets.QWidget):
 
     def compose_current_im(self):
         self.image = self.dataloader.load_image()
+        if self.thres_mode:
+            self.image = self.image_method.image_to_threshold(self.image)
+
+        self.image = self.image_method.image_to_brightness(self.image)
+        self.image = self.image_method.image_to_contrast(self.image)
+
         if not self.is_edited[self.cursor]:
             self.current_mask[self.cursor] = self.dataloader.load_mask()
         self.viz = overlay_moving_mask(self.image, self.current_mask[self.cursor])
