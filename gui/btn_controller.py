@@ -43,7 +43,7 @@ class ButtonController:
         if self.controller.ui.timer.isActive():
             self.controller.ui.timer.stop()
         else:
-            self.controller.ui.timer.start(1500 / 25)
+            self.controller.ui.timer.start(1000 / 25)
 
     def on_prev(self):
         self.controller.prev_flag = True 
