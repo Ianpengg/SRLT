@@ -27,7 +27,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--data_root", type=str, help="specify the datapath")
     args = parser.parse_args()
-    root = '/media/ee904/Data_stored/ramnet_data/'
+    root = '/media/ee904/data/'
     log_name = '2019-01-10-11-46-21-radar-oxford-10k' 
     data_root = args.data_root
     radar_timestamps = load_timestamp(root, log_name)
