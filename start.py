@@ -2,6 +2,7 @@
 import os 
 #import torch
 import numpy as np
+import argparse
 
 from PyQt5 import QtWidgets
 
@@ -22,12 +23,13 @@ def load_timestamp(root, log_name):
 
 if __name__ == '__main__':
     import sys
-
-    #data_root = '/media/ee904/Data_stored/ramnet_data/training_data_v1/2019-01-10-11-46-21-radar-oxford-10k/'
-    root = '/media/ee904/Data_stored/ramnet_data/'
-    log_name = '2019-01-10-12-32-52-radar-oxford-10k'
-    data_root = root + 'testing_data_v1/2019-01-10-12-32-52-radar-oxford-10k/'
-    
+     
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--data_root", type=str, help="specify the datapath")
+    args = parser.parse_args()
+    root = '/media/ee904/data/'
+    log_name = '2019-01-10-11-46-21-radar-oxford-10k' 
+    data_root = args.data_root
     radar_timestamps = load_timestamp(root, log_name)
 
     app = QtWidgets.QApplication(sys.argv)
