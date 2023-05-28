@@ -391,17 +391,15 @@ class MainWindow_controller(QtWidgets.QWidget):
             self.this_frame_interactions.append(self.interaction)
             self.interaction = None
 
-            # reload the saved mask
-            self.interacted_mask = np.zeros((self.num_objects, self.height, self.width), dtype=np.uint8)
-            self.interacted_mask[0] = self.dataloader.load_mask()
             self.ui.undo_button.setDisabled(False)
         else:
-            self.interacted_mask = np.zeros((self.num_objects, self.height, self.width), dtype=np.uint8)
-            self.interacted_mask[0] = self.dataloader.load_mask()
+
             self.ui.undo_button.setDisabled(False)
 
     def reset_this_interaction(self):
         self.complete_interaction()
+        self.interacted_mask = np.zeros((self.num_objects, self.height, self.width), dtype=np.uint8)
+        self.interacted_mask[0] = self.dataloader.load_mask()
         self.clear_visualization()
 
         self.interaction = None
