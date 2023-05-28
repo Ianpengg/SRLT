@@ -57,7 +57,6 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.setup_control()
 
         # initialize
-        self.curr_interaction = 'Free'
 
         self.current_mask = np.zeros((self.num_frames, self.height, self.width), dtype=np.uint8)
         self.vis_map = np.zeros((self.height, self.width, 3), dtype=np.uint8)
@@ -76,6 +75,8 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.zoom_pixels = 150
 
         # initialize action
+        self.curr_interaction = 'Free'
+
         self.interactions = {}
         self.interactions['interact'] = [[] for _ in range(self.num_frames)]
         self.interactions['annotated_frame'] = []
@@ -114,8 +115,14 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.showCurrentFrame()
 
     def setup_control(self, ):
+        """
+        Binding the trigger function to the button or slide bar
+        """
         self.ui.tl_slider.valueChanged.connect(self.tl_slide)
         self.ui.brush_size_bar.valueChanged.connect(self.brush_slide)
+        self.ui.radio_bbox.toggled.connect(self.interaction_radio_clicked)
+        self.ui.radio_free.toggled.connect(self.interaction_radio_clicked)
+
         self.ui.undo_button.clicked.connect(self.Buttoncontroller.on_undo)
         self.ui.timer.timeout.connect(self.Buttoncontroller.on_time)
         self.ui.reset_button.clicked.connect(self.Buttoncontroller.on_reset)
@@ -192,7 +199,18 @@ class MainWindow_controller(QtWidgets.QWidget):
         else:
             self.Buttoncontroller.on_save() 
             return True
-        
+
+    def interaction_radio_clicked(self, event):
+        self.last_interaction = self.curr_interaction
+        if self.ui.radio_free.isChecked():
+            self.ui.brush_size_bar.setDisabled(False)
+            self.brush_slide()
+            self.curr_interaction = "Free"
+        elif self.ui.radio_bbox.isChecked():
+            self.curr_interaction = "Box"
+            self.brush_size = 3
+            self.ui.brush_size_bar.setDisabled(True)
+
         
     def console_push_text(self, text):
         text = '[A: %s, U: %s]: %s' % (self.algo_timer.format(), self.user_timer.format(), text)
