@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import (QWidget, QApplication, QComboBox,
     QShortcut, QRadioButton, QProgressBar, QFileDialog, QMessageBox)
 from PyQt5.QtCore import Qt, QTimer
 
+from icecream import ic
 from .ui import Ui_main_widget
 from .interact.timer import Timer
 from .interact.interaction import * 
@@ -19,7 +20,7 @@ from .inference_core import Inference_core
 from .shortcut import Shortcut
 
 class MainWindow_controller(QtWidgets.QWidget):
-    def __init__(self, files_path, timestamps):
+    def __init__(self, files_path, timestamps, sam_controller):
         super().__init__() # in python3, super(Class, self).xxx = super().xxx
         
         # Set up some initial values
@@ -36,8 +37,10 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.width, self.height = self.image.shape[:2]
         self.Buttoncontroller = ButtonController(self)
         self.Shortcut = Shortcut(self, self.Buttoncontroller)
+        self.sam_controller = sam_controller
         self.processor = Inference_core()
         self.image_method = ImageMethod(self)
+        
         self.ui = Ui_main_widget()
         self.ui.setupUi(self)
         self.setLayout(self.ui.layout)
@@ -85,7 +88,7 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.this_frame_interactions = []
         self.interaction = "Free"
         self.draw_mode = "draw"
-        self.reset_this_interaction()
+        
         self.pressed = False
         self.right_click = False
         self.ctrl_size = False
@@ -94,6 +97,7 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.brush_step = 2
         self.ctrl_key = False
 
+        self.embedding_created = False
         self.auto_save_mode = False
         self.next_flag = False
         self.prev_flag = False
@@ -102,6 +106,7 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.thres_mode = False
         self.mask_mode = True
         self.interacted_mask = np.zeros((self.num_objects, self.height, self.width), dtype=np.uint8)
+        self.reset_this_interaction()
         self.showCurrentFrame()
         self.timestamp_push_text() 
 
@@ -111,6 +116,8 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.user_timer = Timer()
         self.console_push_text('Initialized.')
 
+        self.sam_controller.set_image(self.image)
+        
     def resizeEvent(self, event):
         self.showCurrentFrame()
 
@@ -208,7 +215,7 @@ class MainWindow_controller(QtWidgets.QWidget):
             self.curr_interaction = "Free"
         elif self.ui.radio_bbox.isChecked():
             self.curr_interaction = "Box"
-            self.brush_size = 3
+            self.brush_size = 1
             self.ui.brush_size_bar.setDisabled(True)
 
         
@@ -239,9 +246,7 @@ class MainWindow_controller(QtWidgets.QWidget):
             if type(self.interaction) == FreeInteraction:
                 self.interaction.set_size(self.brush_size)
         except AttributeError:
-            # Initialization, forget about it
             pass
-        #self.interaction.set_size(self.brush_size)
     
     
 
@@ -268,6 +273,7 @@ class MainWindow_controller(QtWidgets.QWidget):
                 self.ui.tl_slider.setValue(self.cursor)
         self.prev_flag = False
         self.next_flag = False
+        self.embedding_created = False
 
     def clear_brush(self):
         self.brush_vis_map.fill(0)
@@ -390,16 +396,17 @@ class MainWindow_controller(QtWidgets.QWidget):
             self.interactions['interact'][self.cursor].append(self.interaction)
             self.this_frame_interactions.append(self.interaction)
             self.interaction = None
-
             self.ui.undo_button.setDisabled(False)
         else:
 
+            self.interacted_mask = np.zeros((self.num_objects, self.height, self.width), dtype=np.uint8)
+            self.interacted_mask[0] = self.dataloader.load_mask()
             self.ui.undo_button.setDisabled(False)
 
     def reset_this_interaction(self):
         self.complete_interaction()
-        self.interacted_mask = np.zeros((self.num_objects, self.height, self.width), dtype=np.uint8)
         self.interacted_mask[0] = self.dataloader.load_mask()
+        self.update_interacted_mask()
         self.clear_visualization()
 
         self.interaction = None
@@ -423,11 +430,10 @@ class MainWindow_controller(QtWidgets.QWidget):
        
         interaction = self.interaction
 
-        if self.curr_interaction == 'Free':
-            self.on_motion(event)
+        if self.curr_interaction == 'Free' or self.curr_interaction == "Box":
             interaction.end_path()
-            if self.curr_interaction == 'Free':
-                self.clear_visualization()
+            # reset the brush layer 
+            self.clear_visualization()
 
         self.interacted_mask = interaction.update()
         self.update_interacted_mask()
@@ -450,10 +456,21 @@ class MainWindow_controller(QtWidgets.QWidget):
                         self.vis_map, self.vis_alpha = self.interaction.push_point(
                             ex, ey, obj, (self.vis_map, self.vis_alpha), mode="draw"
                         )
+                        
                     elif self.draw_mode == 'erase':
                         self.vis_map, self.vis_alpha = self.interaction.push_point(
                             ex, ey, 0, (self.vis_map, self.vis_alpha), mode="erase"
                         )
+                elif self.curr_interaction == "Box":
+                    self.clear_visualization()
+                    
+                    if self.draw_mode == 'draw':
+                        obj = self.current_object
+                        self.vis_map, self.vis_alpha = self.interaction.push_point(
+                                ex, ey, obj, (self.vis_map, self.vis_alpha), mode="draw"
+                            )
+                        
+                    
                 
                         
         self.update_interact_vis()
@@ -468,10 +485,10 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.user_timer.pause()
         self.ctrl_key = False
 
+        ex, ey = self.get_scaled_pos(event.x(), event.y())
         self.pressed = True
         self.right_click = (event.button() != 1)
         self.vis_hist.append((self.vis_map.copy(), self.vis_alpha.copy()))
-        
         last_interaction = self.interaction
         
         new_interaction = None
@@ -479,12 +496,24 @@ class MainWindow_controller(QtWidgets.QWidget):
             if last_interaction is None or type(last_interaction) != FreeInteraction:
                 self.complete_interaction()
                 self.mask = self.dataloader.load_mask()
-                new_interaction = FreeInteraction(self.interacted_mask, self.mask, 
+                new_interaction = FreeInteraction(self.interacted_mask, 
                             self.num_objects, self.processor)
                 new_interaction.set_size(self.brush_size)
+        elif self.curr_interaction == 'Box':
+            if last_interaction is None or type(last_interaction) != BoxInteraction:
+                self.complete_interaction()
+                self.mask = self.dataloader.load_mask()
+                if not self.embedding_created:
+                    self.sam_controller.set_image(self.dataloader.load_image())
+                    self.embedding_created = True
+                new_interaction = BoxInteraction(self.interacted_mask, 
+                            self.num_objects, self.sam_controller)
+                new_interaction.set_init_pos(ex, ey)
+                new_interaction.set_size(self.brush_size)
+            else:
+                last_interaction.set_init_pos(ex, ey)
         if new_interaction is not None:
                 self.interaction = new_interaction
-
         # Just motion it as the first step
         self.on_motion(event)
         self.user_timer.start()
