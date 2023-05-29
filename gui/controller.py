@@ -30,7 +30,8 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.files_path = files_path
         self.num_frames = len(self.radar_timestamps)
 
-        self.dataloader = DataLoader(self.files_path, self.cursor)
+        self.dataloader = DataLoader(self.files_path)
+        self.dataloader.load_data(self.cursor)
         self.image = self.dataloader.load_image() 
         self.mask = self.dataloader.load_mask()
 
@@ -258,8 +259,8 @@ class MainWindow_controller(QtWidgets.QWidget):
             self.console_push_text('Timers started.')
         self.is_saved_flag = False
         self.cursor = self.ui.tl_slider.value()
-    
-        self.dataloader = DataLoader(self.files_path, self.cursor)
+        
+        self.dataloader.load_data(self.cursor)
         if self.dataloader.is_valid():
             self.reset_this_interaction()
             self.showCurrentFrame()
