@@ -68,8 +68,15 @@ class ButtonController:
         if self.controller.interaction is not None:
             if self.controller.interaction.can_undo():
                 self.controller.interacted_mask = self.controller.interaction.undo()
-            else:
-                self.controller.reset_this_interaction() 
+            else: 
+                if len(self.controller.this_frame_interactions) > 0:
+                    self.controller.interacted_mask = self.controller.interaction.undo()
+                    self.controller.interaction = self.controller.this_frame_interactions[-1] 
+                    _ = self.controller.this_frame_interactions.pop()
+                    
+                else:       
+                    self.controller.interacted_mask = self.controller.interaction.undo()
+                    self.controller.reset_this_interaction() 
         else:
             self.controller.reset_this_interaction()
         self.controller.update_interacted_mask()

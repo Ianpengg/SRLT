@@ -43,18 +43,18 @@ class Interaction:
         pass
 
 class FreeInteraction(Interaction):
-    def __init__(self, prev_mask, initial_mask, num_objects, processor=None):
+    def __init__(self, prev_mask, num_objects, processor=None):
         super().__init__(None, prev_mask, None, None)
         self.K = num_objects
         self.processor = processor
+        self.initial_mask = deepcopy(prev_mask).astype(np.uint8)
         self.drawn_mask = deepcopy(prev_mask).astype(np.uint8)
-        # self.drawn_mask[0] = initial_mask
         self.current_mask = None
         self.curr_path = [[] for _ in range(self.K + 1)]
         self.all_paths = [self.curr_path]
 
         self.size = None
-        self.surplus_history = False
+        self.history.append(self.initial_mask)  # add the S0 into stack
 
     def set_size(self, size):
         self.size = size
@@ -103,15 +103,13 @@ class FreeInteraction(Interaction):
     def end_path(self):
         self.curr_path = [[] for _ in range(self.K + 1)]
         self.all_paths.append(self.curr_path)
-        if self.current_mask is None:
-            self.current_mask = self.drawn_mask.copy()
-        else:
-            self.history.append(self.current_mask.copy())
-            self.current_mask = self.drawn_mask.copy()
+   
+        self.current_mask = self.drawn_mask # get the top of history and edit
+        self.history.append(deepcopy(self.current_mask))
 
     def undo(self):
-
-        self.current_mask = self.history.pop()
+        _ = self.history.pop()
+        self.current_mask = self.history[-1]
         self.all_paths = self.all_paths[:-2]
         self.curr_path = [[] for _ in range(self.K + 1)]
         self.all_paths.append(self.curr_path)
@@ -119,10 +117,10 @@ class FreeInteraction(Interaction):
         return self.current_mask
 
     def can_undo(self):
-        return (len(self.history) > 0)
+        return (len(self.history) > 2)
     
     def update(self):
-        return self.drawn_mask
+        return self.current_mask
 
     def predict(self, data):
         predict_mask = self.processor.inference(data)
@@ -137,3 +135,95 @@ class FreeInteraction(Interaction):
             self.history.append(self.current_mask.copy())
             self.current_mask = self.drawn_mask.copy()
         return predict_mask
+
+class BoxInteraction(Interaction):
+    def __init__(self, prev_mask, num_objects, processor=None):
+        super().__init__(None, prev_mask, None, None)
+        self.K = num_objects
+        self.processor = processor
+        self.initial_mask = deepcopy(prev_mask).astype(np.uint8)
+        self.current_mask = None
+        
+        self.curr_path = [[] for _ in range(self.K + 1)]
+        self.all_paths = [self.curr_path]
+
+        self.init_x, self.init_y = 0, 0
+        self.mode = None
+        self.size = None
+        self.history.append(self.initial_mask)  # add the S0 into stack
+
+    def set_init_pos(self, x, y):
+        self.init_x, self.init_y = x, y
+
+
+    def set_size(self, size):
+        self.size = size
+
+    """
+    k - object id
+    vis - a tuple (visualization map, pass through alpha). None if not needed.
+    """
+    def push_point(self, x, y, k, vis=None, mode=None):
+        self.mode = mode
+        if vis is not None:
+            vis_map, vis_alpha = vis
+        selected = self.curr_path[k]
+        selected.append((x, y))
+        if len(selected) >= 2:
+            # Plot visualization
+            if vis is not None:
+                # Visualization for drawing
+                vis_map = cv2.rectangle(vis_map, 
+                    (int(self.init_x), int(self.init_y)),
+                    (int(round(selected[-1][0])), int(round(selected[-1][1]))),
+                    color_map[k], thickness=self.size)
+
+                vis_alpha = cv2.rectangle(vis_alpha, 
+                    (int(self.init_x), int(self.init_y)),
+                    (int(round(selected[-1][0])), int(round(selected[-1][1]))),
+                    0.75, thickness=self.size)
+                
+
+        if vis is not None:
+            return vis_map, vis_alpha
+
+    def end_path(self):
+        
+        self.curr_path = [[] for _ in range(self.K + 1)]
+        self.all_paths.append(self.curr_path)
+
+        self.current_mask = np.logical_or(self.history[-1], self.get_mask()) # get the top of history and edit
+        self.history.append(self.current_mask)
+
+
+    def undo(self):
+        _ = self.history.pop()
+    
+        self.current_mask = self.history[-1]
+        self.all_paths = self.all_paths[:-2]
+        self.curr_path = [[] for _ in range(self.K + 1)]
+        self.all_paths.append(self.curr_path)
+
+        return self.current_mask
+
+    def can_undo(self):
+        return (len(self.history) > 2)
+    
+    def update(self):
+        return self.current_mask
+    
+    def get_mask(self):
+        # all_path structure =>  [path1, path2, []] , path2=> [[object0], [object1]], object1=>[(point pair init), ..., (point pair last)] 
+        # so the unpack order is all_path[-2] (last path)[1] (object1)[0](first point pair)[0](x)
+        # so the unpack order is all_path[-2] (last path)[1] (object1)[0](first point pair)[1](y)
+        input_box = np.array([int(self.all_paths[-2][1][0][0]), int(self.all_paths[-2][1][0][1]), int(self.all_paths[-2][1][-1][0]), int(self.all_paths[-2][1][-1][1])])
+        print(input_box)
+        masks, _, _ = self.processor.predict(
+        point_coords=None,
+        point_labels=None,
+        box=input_box,
+        multimask_output=False,)
+
+        return masks
+
+        

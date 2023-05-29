@@ -12,9 +12,9 @@ def file_to_id(str_):
 
 
 class DataLoader:
-    def __init__(self, file_path, id):
+    def __init__(self, file_path):
         self.file_path = file_path
-        self.id = id
+        self.id = None
         self.data = None
         self.image = None
         self.mask = None
@@ -22,20 +22,20 @@ class DataLoader:
     def is_valid(self):
         return os.path.exists(self.file_path + str(self.id) + '.npy')
 
-    def load_data(self):
+    def load_data(self, new_id):
+        self.id = new_id
         path = self.file_path + str(self.id) + '.npy'
         try:
             data = np.load(path, allow_pickle=True)
             if data is not None:
-                data = data.item()
-                return data
+                self.data = data.item()
+
         except FileNotFoundError:
             pass
-        return None
+ 
     
     def load_image(self):
-        if self.data is None:
-            self.data = self.load_data()
+        
         if self.data is not None and 'raw_radar_0' in self.data:
             image = self.data['raw_radar_0']
             image = (image * 255).astype(np.uint8)

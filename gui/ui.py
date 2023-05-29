@@ -89,7 +89,13 @@ class Ui_main_widget(object):
         self.threshold_label.setMinimumWidth(20)
         self.threshold_label.setAlignment(Qt.AlignCenter)
 
-
+         # Radio buttons for type of interactions
+        self.interaction_group = QButtonGroup()
+        self.radio_bbox = QRadioButton('Box')
+        self.radio_free = QRadioButton('Free')
+        self.interaction_group.addButton(self.radio_bbox)
+        self.interaction_group.addButton(self.radio_free)
+        self.radio_free.toggle()
          # Main canvas -> QLabel
 
         self.main_canvas = QLabel()
@@ -157,6 +163,9 @@ class Ui_main_widget(object):
         self.interact_topbox = QtWidgets.QHBoxLayout()
         self.interact_botbox = QtWidgets.QHBoxLayout()
 
+
+        self.interact_topbox.addWidget(self.radio_bbox)
+        self.interact_topbox.addWidget(self.radio_free)
         self.interact_topbox.addWidget(self.brush_size_label)
         self.interact_botbox.addWidget(self.brush_size_bar)
         self.interact_subbox.addLayout(self.interact_topbox)
