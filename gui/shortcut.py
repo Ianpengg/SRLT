@@ -48,3 +48,7 @@ class Shortcut:
 
         #Use to switch between threshold image and current frame
         QShortcut(QKeySequence(Qt.Key_Q), self.MainWidget).activated.connect(self.Buttoncontroller.on_switch_threshold)
+
+        QShortcut(QKeySequence('Ctrl+1'), self.MainWidget).activated.connect(self.Buttoncontroller.on_switch_to_box)
+
+        QShortcut(QKeySequence('Ctrl+2'), self.MainWidget).activated.connect(self.Buttoncontroller.on_switch_to_free)

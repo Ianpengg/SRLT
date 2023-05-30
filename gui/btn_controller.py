@@ -154,3 +154,11 @@ class ButtonController:
         else:
             self.controller.thres_mode = False
             self.controller.showCurrentFrame()
+
+    def on_switch_to_free(self):
+        self.controller.curr_interaction = "Free"
+        self.controller.ui.radio_free.toggle()
+
+    def on_switch_to_box(self):
+        self.controller.curr_interaction = "Box"
+        self.controller.ui.radio_bbox.toggle()
