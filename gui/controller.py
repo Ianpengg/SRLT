@@ -46,7 +46,7 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.ui.setupUi(self)
         self.setLayout(self.ui.layout)
         self.setWindowTitle("SR Label")
-        self.setGeometry(2000, 100, self.width, self.height+100)
+        self.setGeometry(1080, 100, 1920, 1080)
 
         # setup the slider tick and minimum accroding to the train/test split
         # for train the tick = 2, for test tick = 1
@@ -432,6 +432,7 @@ class MainWindow_controller(QtWidgets.QWidget):
         interaction = self.interaction
 
         if self.curr_interaction == 'Free' or self.curr_interaction == "Box":
+            self.on_motion(event)
             interaction.end_path()
             # reset the brush layer 
             self.clear_visualization()
