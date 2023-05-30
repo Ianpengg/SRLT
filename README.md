@@ -1,51 +1,84 @@
-# SR-label: Scanning Radar Moving Object Segmentation Mask Annotation Tool
-### Main UI
-![image](https://user-images.githubusercontent.com/88025855/221499765-f3169973-052f-4936-8eaa-794ac6ab2200.png)
+# SRLT: Scanning Radar Labelling Tool for annotating segmentation mask 
 
-### Basic Usage
-Press key `1` to draw the area (based on radar intensity > threshold)  
-Press key `2` to delete the area (based on radar intensity > threshold)  
-Press key `3` to draw the area  
-Press key `4` to delete the area   
+<img src="assets/main_gui.png?raw=true" width="720"/>
 
-<img src="https://user-images.githubusercontent.com/88025855/221505087-0c9a4b02-dec5-425c-af04-5ce5d8d31b5f.gif" width="50%">
+## About SRLT 
 
+SRLT is a graphical scanning radar image annotation tool.
 
-### Real-Time Model Inference 
-#### For pre-trained model download => [link](https://drive.google.com/drive/folders/1ckcuMkSlD_ojzMHgUACIzJxv1lN4_Dww?usp=sharing)
-Press key `i` to get current frame inference result   
- 
-<img src="https://user-images.githubusercontent.com/88025855/221507300-7bd3ebeb-e9f7-4937-ba86-bceefaa8a1d0.gif" width="50%">
+It's written in Python and uses Qt for its graphical interface.
 
-### Shape Completion
-Press key `j` to make holes in contours be filled   
-<img src="https://user-images.githubusercontent.com/88025855/221515949-c6aba830-3e53-4dab-b955-89442d21ef33.gif" width="50%">
-
-
-### Lidar PointCloud Reference
-<img src="https://user-images.githubusercontent.com/88025855/221510596-8a6fe57a-de76-4104-a327-23caacc71d4b.png" width="50%">
-
-### Multiple Camera Reference 
-<img src="https://user-images.githubusercontent.com/88025855/221512675-54bf88c9-6594-425c-b477-96031a3664c2.png" width="50%">
-
+**This tool currently only supports the Oxford Radar Robotcar Dataset**   
 
 
 ## Features
 
-- Pixel level editing
-- Automatic mask fitting
-- Mask shape completion
-- Multiple camera images checking
-- Lidar PointCloud checking
+- [x] Intergrated the Segment Anything Model(SAM) from MetaAI
+- [x] Image annotation with Brush and Box tools (using Box as a prompt for SAM).
+- [x]  Image processing methods supported: brightness adjustment, contrast adjustment, and thresholding.
+- [x] Mini-map for zooming in and out of sub-regions.
+- [x] Auto-play button to show the consecutive frames.
+
+<div>
+    <img src="assets/mask_draw_undo.gif" alt="Mask Draw Undo" width="300"/>
+    <img src="assets/brush_draw_undo.gif" alt="Brush Draw Undo" width="300"/>
+    <img src="assets/image_process.gif" alt="Image Processing" width="300"/>
+</div>
 
 
-## How to use
-To be announced soon
+## Install
+The code tested under `python==3.8`, `pytorch==1.12.1+cu113` and `torchvision==0.13.1+cu113` Please follow the instructions here to install both PyTorch and TorchVision dependencies. Installing both PyTorch and TorchVision with CUDA support is strongly recommended.
 
+Install Segment Anything:
+
+```
+pip install git+https://github.com/facebookresearch/segment-anything.git
+```
+
+Install required packages:
+
+```
+cd SRLT; pip install -e .
+```
+
+
+## Data Preparation
+Please follow the pre-processing pipeline in  [RaMNet](https://github.com/Ianpengg/RaMNet)
+```
+└── DATA_PATH
+  ├── gt
+  ├── radar
+  ├── vo
+  ├── processed/
+  |   ├── radar/
+  |   | ├── 1547120787893007.jpg
+  |   | ├── 1547120788140671.jpg
+  |   | └── ...
+  |   ├── radar_history/
+  |   |   ├── 1547120787893007_1.jpg
+  |   |   ├── 1547120788140671_1.jpg
+  |   |   └── ...
+  |   ├── mask/
+  |   |     ├── 1547120787893007.png
+  |   |     ├── 1547120788140671.png
+  |   |     └── ...
+  |   ├── train.txt  # filename list for train 
+  |   ├── val.txt  # filename list for validation 
+  |   └── test.txt  # filename list for test 
+  |
+  ├── radar.timestamps
+  ├── ...
+```
+
+## How to use 
+
+```
+python start.py -d DATA_PATH --checkpoint <your_sam_chackpoints> --model_type <sam_model_type>
+```
 
 
 ## Reference 
-Some codes are from 
+Parts of the code have been adapted from the following repository:
 https://github.com/ori-mrg/robotcar-dataset-sdk
 
 ## LICENSE
