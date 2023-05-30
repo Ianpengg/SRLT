@@ -194,7 +194,8 @@ class BoxInteraction(Interaction):
 
         self.current_mask = np.logical_or(self.history[-1], self.get_mask()) # get the top of history and edit
         self.history.append(self.current_mask)
-
+        # print("end", self.current_mask.shape, self.current_mask.dtype)
+        # (1, 256, 256)  bool
 
     def undo(self):
         _ = self.history.pop()

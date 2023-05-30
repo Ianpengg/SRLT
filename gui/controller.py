@@ -30,7 +30,7 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.files_path = files_path
         self.num_frames = len(self.radar_timestamps)
 
-        self.dataloader = DataLoader(self.files_path)
+        self.dataloader = DataLoader(self.files_path, self.radar_timestamps)
         self.dataloader.load_data(self.cursor)
         self.image = self.dataloader.load_image() 
         self.mask = self.dataloader.load_mask()
