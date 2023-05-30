@@ -217,7 +217,7 @@ class BoxInteraction(Interaction):
         # so the unpack order is all_path[-2] (last path)[1] (object1)[0](first point pair)[0](x)
         # so the unpack order is all_path[-2] (last path)[1] (object1)[0](first point pair)[1](y)
         input_box = np.array([int(self.all_paths[-2][1][0][0]), int(self.all_paths[-2][1][0][1]), int(self.all_paths[-2][1][-1][0]), int(self.all_paths[-2][1][-1][1])])
-        print(input_box)
+
         masks, _, _ = self.processor.predict(
         point_coords=None,
         point_labels=None,
