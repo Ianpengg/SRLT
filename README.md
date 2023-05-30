@@ -20,9 +20,9 @@ It's written in Python and uses Qt for its graphical interface.
 - [x] Auto-play button to show the consecutive frames.
 
 <div>
-    <img src="assets/mask_draw_undo.gif" alt="Mask Draw Undo" width="300"/>
-    <img src="assets/brush_draw_undo.gif" alt="Brush Draw Undo" width="300"/>
-    <img src="assets/image_process.gif" alt="Image Processing" width="300"/>
+    <img src="assets/mask_draw_undo.gif" alt="Mask Draw Undo" width="600"/>
+    <img src="assets/brush_draw_undo.gif" alt="Brush Draw Undo" width="600"/>
+    <img src="assets/image_process.gif" alt="Image Processing" width="600"/>
 </div>
 
 
