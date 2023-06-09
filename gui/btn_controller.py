@@ -3,42 +3,50 @@
 from .interact.interaction import FreeInteraction
 
 
-
 class ButtonController:
     def __init__(self, controller):
         self.controller = controller
 
-
     def on_save(self):
         self.controller.is_saved_flag = True
-        self.controller.dataloader.save_mask(self.controller.interacted_mask[0])    
-        self.controller.console_push_text(f'{self.controller.files_path + str(self.controller.cursor) }.npy Saved.')   
-            
+        self.controller.dataloader.save_mask(self.controller.interacted_mask[0])
+        self.controller.console_push_text(f"Annotated mask saved.")
+
     def on_time(self):
         self.controller.cursor += 1
-        if self.controller.cursor > self.controller.num_frames-1:
+        if self.controller.cursor > self.controller.num_frames - 1:
             self.controller.cursor = 0
         self.controller.ui.tl_slider.setValue(self.controller.cursor)
 
     def on_erase(self):
-        self.controller.draw_mode = "erase" if self.controller.draw_mode == "draw" else "draw"
+        self.controller.draw_mode = (
+            "erase" if self.controller.draw_mode == "draw" else "draw"
+        )
         if self.controller.draw_mode == "erase":
-            self.controller.ui.eraser_button.setStyleSheet('background-color: red')
-            self.controller.console_push_text('Enter erase mode.')
+            self.controller.ui.eraser_button.setStyleSheet("background-color: red")
+            self.controller.console_push_text("Enter erase mode.")
         else:
-            self.controller.ui.eraser_button.setStyleSheet('background-color: None')
-            self.controller.console_push_text('Enter draw mode.')
-            
+            self.controller.ui.eraser_button.setStyleSheet("background-color: None")
+            self.controller.console_push_text("Enter draw mode.")
+
     def on_reset(self):
         # DO not edit prob -- we still need the mask diff
-      
-        self.controller.current_mask[self.controller.cursor] = self.controller.dataloader.load_mask()
+
+        self.controller.current_mask[
+            self.controller.cursor
+        ] = self.controller.dataloader.load_mask()
         self.controller.reset_this_interaction()
         self.controller.showCurrentFrame()
-    
+
     def on_play(self):
-        self.controller.play_flag = True if self.controller.play_flag == False else False
-        self.controller.ui.play_button.setStyleSheet('background-color: red' if self.controller.play_flag else 'background-color: None')
+        self.controller.play_flag = (
+            True if self.controller.play_flag == False else False
+        )
+        self.controller.ui.play_button.setStyleSheet(
+            "background-color: red"
+            if self.controller.play_flag
+            else "background-color: None"
+        )
         self.controller.set_navi_disable(self.controller.play_flag)
         if self.controller.ui.timer.isActive():
             self.controller.ui.timer.stop()
@@ -46,37 +54,42 @@ class ButtonController:
             self.controller.ui.timer.start(1000 / 25)
 
     def on_prev(self):
-        self.controller.prev_flag = True 
+        self.controller.prev_flag = True
         if self.controller.is_saved_flag:
-            self.controller.cursor = max(2, self.controller.cursor-1)
+            self.controller.cursor = max(5, self.controller.cursor - 1)
             self.controller.ui.tl_slider.setValue(self.controller.cursor)
         elif not self.controller.is_saved_flag and self.controller.set_continue():
-            self.controller.cursor = max(2, self.controller.cursor-1)
+            self.controller.cursor = max(5, self.controller.cursor - 1)
             self.controller.ui.tl_slider.setValue(self.controller.cursor)
-            
-    def on_next(self): 
+
+    def on_next(self):
         self.controller.next_flag = True
         if self.controller.is_saved_flag:
-            self.controller.cursor = min(self.controller.cursor+1, self.controller.num_frames-1)
+            self.controller.cursor = min(
+                self.controller.cursor + 1, self.controller.num_frames - 1
+            )
             self.controller.ui.tl_slider.setValue(self.controller.cursor)
-        elif not self.controller.is_saved_flag and self.controller.set_continue()  :
-            self.controller.cursor = min(self.controller.cursor+1, self.controller.num_frames-1)
+        elif not self.controller.is_saved_flag and self.controller.set_continue():
+            self.controller.cursor = min(
+                self.controller.cursor + 1, self.controller.num_frames - 1
+            )
             self.controller.ui.tl_slider.setValue(self.controller.cursor)
- 
 
     def on_undo(self):
         if self.controller.interaction is not None:
             if self.controller.interaction.can_undo():
                 self.controller.interacted_mask = self.controller.interaction.undo()
-            else: 
+            else:
                 if len(self.controller.this_frame_interactions) > 0:
                     self.controller.interacted_mask = self.controller.interaction.undo()
-                    self.controller.interaction = self.controller.this_frame_interactions[-1] 
+                    self.controller.interaction = (
+                        self.controller.this_frame_interactions[-1]
+                    )
                     _ = self.controller.this_frame_interactions.pop()
-                    
-                else:       
+
+                else:
                     self.controller.interacted_mask = self.controller.interaction.undo()
-                    self.controller.reset_this_interaction() 
+                    self.controller.reset_this_interaction()
         else:
             self.controller.reset_this_interaction()
         self.controller.update_interacted_mask()
@@ -87,15 +100,23 @@ class ButtonController:
             data = self.controller.dataloader.load_data()
             # if there is no interaction, create a new one
             if self.controller.interaction is None:
-                self.controller.interaction = FreeInteraction(self.controller.interacted_mask, self.controller.mask, 
-                            self.controller.num_objects, self.controller.processor)
-                self.controller.interacted_mask[0] = self.controller.interaction.predict(data)
+                self.controller.interaction = FreeInteraction(
+                    self.controller.interacted_mask,
+                    self.controller.mask,
+                    self.controller.num_objects,
+                    self.controller.processor,
+                )
+                self.controller.interacted_mask[
+                    0
+                ] = self.controller.interaction.predict(data)
                 self.controller.ui.undo_button.setDisabled(False)
-                
-            else :
-                self.controller.interacted_mask[0] = self.controller.interaction.predict(data)
 
-            self.controller.update_interacted_mask()      
+            else:
+                self.controller.interacted_mask[
+                    0
+                ] = self.controller.interaction.predict(data)
+
+            self.controller.update_interacted_mask()
 
     def on_zoom_plus(self):
         self.controller.zoom_pixels -= 25
@@ -105,12 +126,13 @@ class ButtonController:
     def on_zoom_minus(self):
         self.controller.zoom_pixels += 25
         self.controller.zoom_pixels = min(self.controller.zoom_pixels, 300)
-        self.controller.update_minimap() 
-
+        self.controller.update_minimap()
 
     def on_brsize_plus(self):
         self.controller.brush_size += self.controller.brush_step
-        self.controller.brush_size = min(self.controller.brush_size, self.controller.ui.brush_size_bar.maximum())
+        self.controller.brush_size = min(
+            self.controller.brush_size, self.controller.ui.brush_size_bar.maximum()
+        )
         self.controller.ui.brush_size_bar.setValue(self.controller.brush_size)
         self.controller.brush_slide()
         self.controller.clear_brush()
@@ -130,23 +152,26 @@ class ButtonController:
 
     def on_switch_mask(self):
         # set brightness to zero to show the mask
-        # set brightness back to current value to see original image 
+        # set brightness back to current value to see original image
 
         # save current brightness
-        
-        
+
         if self.controller.mask_mode:
-            self.controller.current_brightness = self.controller.ui.brightness_bar.value()
+            self.controller.current_brightness = (
+                self.controller.ui.brightness_bar.value()
+            )
             self.controller.ui.brightness_bar.setValue(0)
             self.controller.mask_mode = False
             self.controller.showCurrentFrame()
         else:
-            self.controller.ui.brightness_bar.setValue(self.controller.current_brightness)
+            self.controller.ui.brightness_bar.setValue(
+                self.controller.current_brightness
+            )
             self.controller.mask_mode = True
             self.controller.showCurrentFrame()
 
     def on_switch_threshold(self):
-        
+
         if not self.controller.thres_mode:
             self.controller.ui.threshold_bar.setValue(self.controller.threshold)
             self.controller.thres_mode = True
