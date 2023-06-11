@@ -68,7 +68,7 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.ui.tl_slider.setSingleStep(1)
         self.ui.tl_slider.setMinimum(self.cursor)
         self.ui.tl_slider.setMaximum(self.num_frames - 1)
-        self.ui.brush_size_bar.setMaximum(14)
+        self.ui.brush_size_bar.setMaximum(40)
 
         self.setup_control()
 
@@ -106,6 +106,7 @@ class MainWindow_controller(QtWidgets.QWidget):
 
         self.pressed = False
         self.right_click = False
+        self.left_click = False
         self.ctrl_size = False
         self.current_object = 1
         self.last_ex = self.last_ey = 0
@@ -480,16 +481,27 @@ class MainWindow_controller(QtWidgets.QWidget):
         # Ordinary interaction (might be in local mode)
 
         interaction = self.interaction
-
-        if self.curr_interaction == "Free" or self.curr_interaction == "Box":
+        
+        if self.curr_interaction == "Free":
             self.on_motion(event)
             interaction.end_path()
             # reset the brush layer
             self.clear_visualization()
+            self.interacted_mask = interaction.update()
+            self.update_interacted_mask()
+        elif self.curr_interaction == "Box":
+            if self.right_click:
+                self.right_click = False
+            elif self.left_click:
+                self.on_motion(event)
+                interaction.end_path()
+                self.clear_visualization()
+                self.interacted_mask = interaction.update()
+                self.update_interacted_mask()
+                self.left_click = False
 
-        self.interacted_mask = interaction.update()
-        self.update_interacted_mask()
-        self.pressed = self.ctrl_key = self.right_click = False
+       
+        self.pressed = self.ctrl_key = False
         self.ui.undo_button.setDisabled(False)
         self.user_timer.start()
 
@@ -499,8 +511,9 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.clear_brush()
         # Visualize
         self.vis_brush(ex, ey)
+
         if self.pressed:
-            if not self.ctrl_key:
+            if not (self.left_click and self.right_click):
                 if self.curr_interaction == "Free":
                     if self.draw_mode == "draw":
                         obj = 0 if self.right_click else self.current_object
@@ -515,12 +528,14 @@ class MainWindow_controller(QtWidgets.QWidget):
                         )
                 elif self.curr_interaction == "Box":
                     self.clear_visualization()
-
-                    if self.draw_mode == "draw":
+                    
+                    if self.draw_mode == "draw" and self.left_click:
                         obj = self.current_object
                         self.vis_map, self.vis_alpha = self.interaction.push_point(
                             ex, ey, obj, (self.vis_map, self.vis_alpha), mode="draw"
                         )
+
+            
 
         self.update_interact_vis()
         self.update_minimap()
@@ -536,7 +551,16 @@ class MainWindow_controller(QtWidgets.QWidget):
 
         ex, ey = self.get_scaled_pos(event.x(), event.y())
         self.pressed = True
-        self.right_click = event.button() != 1
+
+        # Deal with pressing left and right click at the same time
+        if self.right_click:
+            self.left_click = event.button() == 1
+        elif self.left_click:
+            self.right_click = event.button() == 2
+        elif not (self.right_click and self.left_click):
+            self.right_click = event.button() == 2
+            self.left_click = event.button() == 1
+
         self.vis_hist.append((self.vis_map.copy(), self.vis_alpha.copy()))
         last_interaction = self.interaction
 

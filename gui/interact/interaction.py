@@ -67,7 +67,8 @@ class FreeInteraction(Interaction):
         if vis is not None:
             vis_map, vis_alpha = vis
         selected = self.curr_path[k]
-        selected.append((x, y))
+        if mode == "draw":
+            selected.append((x, y))
         if len(selected) >= 2:
             for i in range(self.K):
                 if mode == "draw":
@@ -186,9 +187,9 @@ class BoxInteraction(Interaction):
 
         if vis is not None:
             return vis_map, vis_alpha
-
     def end_path(self):
         
+        print("end")
         self.curr_path = [[] for _ in range(self.K + 1)]
         self.all_paths.append(self.curr_path)
 
