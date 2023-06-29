@@ -54,26 +54,28 @@ class ButtonController:
             self.controller.ui.timer.start(1000 / 25)
 
     def on_prev(self):
-        self.controller.prev_flag = True
-        if self.controller.is_saved_flag:
-            self.controller.cursor = max(5, self.controller.cursor - 1)
-            self.controller.ui.tl_slider.setValue(self.controller.cursor)
-        elif not self.controller.is_saved_flag and self.controller.set_continue():
-            self.controller.cursor = max(5, self.controller.cursor - 1)
-            self.controller.ui.tl_slider.setValue(self.controller.cursor)
+        if not self.controller.pressed:
+            self.controller.prev_flag = True
+            if self.controller.is_saved_flag:
+                self.controller.cursor = max(5, self.controller.cursor - 1)
+                self.controller.ui.tl_slider.setValue(self.controller.cursor)
+            elif not self.controller.is_saved_flag and self.controller.set_continue():
+                self.controller.cursor = max(5, self.controller.cursor - 1)
+                self.controller.ui.tl_slider.setValue(self.controller.cursor)
 
     def on_next(self):
-        self.controller.next_flag = True
-        if self.controller.is_saved_flag:
-            self.controller.cursor = min(
-                self.controller.cursor + 1, self.controller.num_frames - 1
-            )
-            self.controller.ui.tl_slider.setValue(self.controller.cursor)
-        elif not self.controller.is_saved_flag and self.controller.set_continue():
-            self.controller.cursor = min(
-                self.controller.cursor + 1, self.controller.num_frames - 1
-            )
-            self.controller.ui.tl_slider.setValue(self.controller.cursor)
+        if not self.controller.pressed:
+            self.controller.next_flag = True
+            if self.controller.is_saved_flag:
+                self.controller.cursor = min(
+                    self.controller.cursor + 1, self.controller.num_frames - 1
+                )
+                self.controller.ui.tl_slider.setValue(self.controller.cursor)
+            elif not self.controller.is_saved_flag and self.controller.set_continue():
+                self.controller.cursor = min(
+                    self.controller.cursor + 1, self.controller.num_frames - 1
+                )
+                self.controller.ui.tl_slider.setValue(self.controller.cursor)
 
     def on_undo(self):
         if self.controller.interaction is not None:
