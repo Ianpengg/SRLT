@@ -189,7 +189,6 @@ class BoxInteraction(Interaction):
             return vis_map, vis_alpha
     def end_path(self):
         
-        print("end")
         self.curr_path = [[] for _ in range(self.K + 1)]
         self.all_paths.append(self.curr_path)
 

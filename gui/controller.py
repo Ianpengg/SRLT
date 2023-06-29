@@ -305,7 +305,6 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.brush_vis_alpha.fill(0)
 
     def vis_brush(self, ex, ey):
-
         self.brush_vis_map = cv2.circle(
             self.brush_vis_map,
             (int(round(ex)), int(round(ey))),
@@ -432,7 +431,6 @@ class MainWindow_controller(QtWidgets.QWidget):
         return x, y
 
     def clear_visualization(self):
-
         self.vis_map.fill(0)
         self.vis_alpha.fill(0)
         self.vis_hist.clear()
@@ -447,7 +445,6 @@ class MainWindow_controller(QtWidgets.QWidget):
             self.interaction = None
             self.ui.undo_button.setDisabled(False)
         else:
-
             self.interacted_mask = np.zeros(
                 (self.num_objects, self.height, self.width), dtype=np.uint8
             )
@@ -465,7 +462,6 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.ui.undo_button.setDisabled(True)
 
     def update_interacted_mask(self):
-
         # self.processor.update_mask_only(self.interacted_mask, self.cursur)
         self.current_mask[self.cursor] = self.interacted_mask[0]
         self.is_edited[self.cursor] = True
@@ -481,7 +477,7 @@ class MainWindow_controller(QtWidgets.QWidget):
         # Ordinary interaction (might be in local mode)
 
         interaction = self.interaction
-        
+
         if self.curr_interaction == "Free":
             self.on_motion(event)
             interaction.end_path()
@@ -489,6 +485,7 @@ class MainWindow_controller(QtWidgets.QWidget):
             self.clear_visualization()
             self.interacted_mask = interaction.update()
             self.update_interacted_mask()
+            self.right_click = self.left_click = False
         elif self.curr_interaction == "Box":
             if self.right_click:
                 self.right_click = False
@@ -500,7 +497,6 @@ class MainWindow_controller(QtWidgets.QWidget):
                 self.update_interacted_mask()
                 self.left_click = False
 
-       
         self.pressed = self.ctrl_key = False
         self.ui.undo_button.setDisabled(False)
         self.user_timer.start()
@@ -528,14 +524,12 @@ class MainWindow_controller(QtWidgets.QWidget):
                         )
                 elif self.curr_interaction == "Box":
                     self.clear_visualization()
-                    
+
                     if self.draw_mode == "draw" and self.left_click:
                         obj = self.current_object
                         self.vis_map, self.vis_alpha = self.interaction.push_point(
                             ex, ey, obj, (self.vis_map, self.vis_alpha), mode="draw"
                         )
-
-            
 
         self.update_interact_vis()
         self.update_minimap()

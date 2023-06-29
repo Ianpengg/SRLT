@@ -11,7 +11,6 @@ from utils.timestamp_loader import registry
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-f", "--folder_name", type=str, help="specify the folder name to labeled"
