@@ -43,15 +43,11 @@ class DataLoader:
         self.mask_path = (
             self.file_path + "mask/" + str(self.timestamp[self.id]) + ".png"
         )
-        if os.path.exists(self.mask_path):
-            pass
-        else:
-            self.mask_path = (
-                self.file_path + "mask/" + str_format.format(self.id) + ".png"
-            )
+        mask_folder = os.path.dirname(self.mask_path)
+        if not os.path.exists(mask_folder):
+            os.makedirs(mask_folder)
 
     def load_image(self):
-
         if self.is_valid():
             self.image = cv2.imread(self.image_path)
             self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
@@ -71,14 +67,12 @@ class DataLoader:
             return self.mask
 
     def save_mask(self, mask):
-
         cv2.imwrite(self.mask_path, 255 * mask.astype(np.uint8))
 
 
 if __name__ == "__main__":
 
     def load_timestamp(root, log_name):
-
         radar_folder = root + "oxford/" + log_name + "/"
         timestamps_path = radar_folder + "radar.timestamps"
         radar_timestamps = np.loadtxt(
