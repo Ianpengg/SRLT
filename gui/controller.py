@@ -91,7 +91,7 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.on_showing = None
         self.brush_size = 1
         self.num_objects = 1
-        self.brightness = 50
+        self.brightness = 20
         self.contrast = 20
         self.threshold = 20
         self.current_brightness = 0
@@ -110,6 +110,7 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.interaction = "Free"
         self.draw_mode = "draw"
 
+        self.current_patch = patch_num
         self.pressed = False
         self.right_click = False
         self.left_click = False
@@ -175,6 +176,18 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.ui.contrast_bar.valueChanged.connect(self.contrast_slide)
         self.ui.threshold_bar.valueChanged.connect(self.threshold_slide)
         self.ui.infer_button.setEnabled(False)
+        self.ui.portion1_button.clicked.connect(
+            self.Buttoncontroller.on_switch_to_patch_0
+        )
+        self.ui.portion2_button.clicked.connect(
+            self.Buttoncontroller.on_switch_to_patch_1
+        )
+        self.ui.portion3_button.clicked.connect(
+            self.Buttoncontroller.on_switch_to_patch_2
+        )
+        self.ui.portion4_button.clicked.connect(
+            self.Buttoncontroller.on_switch_to_patch_3
+        )
 
         # setup the mouse event on main_canvas
         self.ui.main_canvas.mousePressEvent = self.on_press

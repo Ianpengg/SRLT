@@ -9,14 +9,31 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import Qt, QTimer 
-from PyQt5.QtWidgets import (QWidget, QApplication, QComboBox, 
-    QHBoxLayout, QLabel, QPushButton, QTextEdit, 
-    QPlainTextEdit, QVBoxLayout, QSizePolicy, QButtonGroup, QSlider, 
-    QShortcut, QRadioButton, QProgressBar, QFileDialog, QCheckBox, QCheckBox)
+from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtWidgets import (
+    QWidget,
+    QApplication,
+    QComboBox,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QTextEdit,
+    QPlainTextEdit,
+    QVBoxLayout,
+    QSizePolicy,
+    QButtonGroup,
+    QSlider,
+    QShortcut,
+    QRadioButton,
+    QProgressBar,
+    QFileDialog,
+    QCheckBox,
+    QCheckBox,
+)
+
+
 class Ui_main_widget(object):
     def setupUi(self, main_widget):
-
         # Some buttons
         self.play_button = QPushButton("Play")
         self.undo_button = QPushButton("Undo")
@@ -25,8 +42,12 @@ class Ui_main_widget(object):
         self.model_button = QPushButton("Model")
         self.infer_button = QPushButton("Inference")
         self.save_button = QPushButton("Save")
+        self.portion1_button = QPushButton("Portion 1")
+        self.portion2_button = QPushButton("Portion 2")
+        self.portion3_button = QPushButton("Portion 3")
+        self.portion4_button = QPushButton("Portion 4")
 
-        # Display the frame count 
+        # Display the frame count
         self.frame_log = QTextEdit()
         self.frame_log.setMaximumHeight(28)
         self.frame_log.setMaximumWidth(120)
@@ -39,7 +60,7 @@ class Ui_main_widget(object):
         self.tl_slider.setTickPosition(QSlider.TicksBelow)
         self.tl_slider.setTickInterval(10)
 
-        # Brush size slider        
+        # Brush size slider
         self.brush_size_bar = QSlider(Qt.Horizontal)
         self.brush_size_bar.setMinimumWidth(150)
         self.brush_size_bar.setMinimum(1)
@@ -53,19 +74,18 @@ class Ui_main_widget(object):
         self.brush_size_label.setMinimumWidth(100)
         self.brush_size_label.setAlignment(Qt.AlignCenter)
 
-        # Brightness adjust slider 
+        # Brightness adjust slider
         self.brightness_bar = QSlider(Qt.Horizontal)
         self.brightness_bar.setMinimumWidth(150)
         self.brightness_bar.setMinimum(0)
         self.brightness_bar.setMaximum(100)
-        self.brightness_bar.setValue(60)
 
         # Contrast adjust slider
         self.contrast_bar = QSlider(Qt.Horizontal)
         self.contrast_bar.setMinimumWidth(150)
         self.contrast_bar.setMinimum(0)
         self.contrast_bar.setMaximum(100)
-        self.contrast_bar.setValue(20)
+        self.contrast_bar.setValue(80)
 
         # Brightness label
         self.brightness_label = QLabel("Brightness")
@@ -83,52 +103,50 @@ class Ui_main_widget(object):
         self.threshold_bar.setMinimum(0)
         self.threshold_bar.setMaximum(100)
         self.threshold_bar.setValue(20)
-         
+
         # Threshold label
         self.threshold_label = QLabel("Threshold")
         self.threshold_label.setMinimumWidth(20)
         self.threshold_label.setAlignment(Qt.AlignCenter)
 
-         # Radio buttons for type of interactions
+        # Radio buttons for type of interactions
         self.interaction_group = QButtonGroup()
-        self.radio_bbox = QRadioButton('Box')
-        self.radio_free = QRadioButton('Free')
+        self.radio_bbox = QRadioButton("Box")
+        self.radio_free = QRadioButton("Free")
         self.interaction_group.addButton(self.radio_bbox)
         self.interaction_group.addButton(self.radio_free)
         self.radio_free.toggle()
 
-         # Main canvas -> QLabel
+        # Main canvas -> QLabel
         self.main_canvas = QLabel()
-        self.main_canvas.setSizePolicy(QSizePolicy.Expanding,
-                QSizePolicy.Expanding)
+        self.main_canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.main_canvas.setMinimumSize(100, 100)
         self.main_canvas.setAlignment(Qt.AlignCenter)
         self.main_canvas.setMouseTracking(True)
 
         # Minimap -> Also a QLbal
         self.minimap = QLabel()
-        self.minimap.setSizePolicy(QSizePolicy.Expanding,
-                QSizePolicy.Expanding)
+        self.minimap.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.minimap.setMinimumSize(100, 100)
         self.minimap.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
 
         # Zoom-in buttons
-        self.zoom_p_button = QPushButton('Zoom +')
+        self.zoom_p_button = QPushButton("Zoom +")
 
         # Zoom-out buttons
-        self.zoom_m_button = QPushButton('Zoom -')
+        self.zoom_m_button = QPushButton("Zoom -")
 
         # Record the current timestamp information
         self.ts_label = QLabel("Timestamp:")
         self.ts_label.setMaximumSize(QtCore.QSize(100, 40))
         self.ts_label.setAlignment(Qt.AlignCenter)
         self.ts_log = QtWidgets.QTextEdit()
-        self.ts_log.setMinimumSize(QtCore.QSize(300, 40 ))
+        self.ts_log.setMinimumSize(QtCore.QSize(300, 40))
         self.ts_log.setMaximumHeight(40)
         self.ts_log.setReadOnly(True)
 
         # set the font size to 17
-        font =  self.ts_log.font()
+        font = self.ts_log.font()
         font.setPointSize(17)
         self.ts_log.setFont(font)
 
@@ -142,7 +160,6 @@ class Ui_main_widget(object):
 
         # Navigator
         self.navi = QHBoxLayout()
-        
 
         self.navi.addWidget(self.frame_log)
         self.navi.addWidget(self.play_button)
@@ -152,7 +169,6 @@ class Ui_main_widget(object):
         self.interact_topbox = QtWidgets.QHBoxLayout()
         self.interact_botbox = QtWidgets.QHBoxLayout()
 
-
         self.interact_topbox.addWidget(self.radio_bbox)
         self.interact_topbox.addWidget(self.radio_free)
         self.interact_topbox.addWidget(self.brush_size_label)
@@ -160,7 +176,7 @@ class Ui_main_widget(object):
         self.interact_subbox.addLayout(self.interact_topbox)
         self.interact_subbox.addLayout(self.interact_botbox)
         self.navi.addLayout(self.interact_subbox)
-        
+
         # Add image process box
         self.image_process_subbox = QtWidgets.QVBoxLayout()
         self.image_process_topbox = QtWidgets.QHBoxLayout()
@@ -168,7 +184,6 @@ class Ui_main_widget(object):
 
         self.image_process_topbox_2 = QtWidgets.QHBoxLayout()
         self.image_process_botbox_2 = QtWidgets.QHBoxLayout()
-
 
         self.image_process_topbox.addWidget(self.brightness_label)
         self.image_process_botbox.addWidget(self.brightness_bar)
@@ -180,8 +195,6 @@ class Ui_main_widget(object):
         self.image_process_subbox.addLayout(self.image_process_topbox_2)
         self.image_process_subbox.addLayout(self.image_process_botbox_2)
 
-
-        
         self.image_process_subbox_2 = QtWidgets.QVBoxLayout()
         self.image_process_topbox_3 = QtWidgets.QHBoxLayout()
         self.image_process_botbox_3 = QtWidgets.QHBoxLayout()
@@ -191,35 +204,36 @@ class Ui_main_widget(object):
 
         self.image_process_subbox_2.addLayout(self.image_process_topbox_3)
         self.image_process_subbox_2.addLayout(self.image_process_botbox_3)
-        
+
         self.navi.addLayout(self.image_process_subbox)
         self.navi.addLayout(self.image_process_subbox_2)
-
 
         self.navi.addWidget(self.eraser_button)
         self.navi.addWidget(self.undo_button)
         self.navi.addWidget(self.reset_button)
 
         self.navi.addStretch(1)
+        self.navi.addWidget(self.portion1_button)
+        self.navi.addWidget(self.portion2_button)
+        self.navi.addWidget(self.portion3_button)
+        self.navi.addWidget(self.portion4_button)
         self.navi.addWidget(self.auto_save_btn)
 
-        self.navi.addWidget(self.model_button)
-        self.navi.addWidget(self.infer_button)
+        # self.navi.addWidget(self.model_button)
+        # self.navi.addWidget(self.infer_button)
         self.navi.addWidget(self.save_button)
         self.navi.addStretch(1)
-
 
         # draw area
         draw_area = QHBoxLayout()
         draw_area.addWidget(self.main_canvas, 4)
-
 
         # Minimap area layout
         minimap_area = QVBoxLayout()
         minimap_ctrl = QHBoxLayout()
         ts_record = QHBoxLayout()
 
-        mini_label = QLabel('Minimap')
+        mini_label = QLabel("Minimap")
         minimap_area.setAlignment(Qt.AlignTop)
         mini_label.setAlignment(Qt.AlignTop)
         minimap_area.addWidget(mini_label)
@@ -242,17 +256,12 @@ class Ui_main_widget(object):
 
         draw_area.addLayout(minimap_area, 2)
 
-
         # Set the main layout
         self.layout = QVBoxLayout()
         self.layout.addLayout(draw_area)
         self.layout.addWidget(self.tl_slider)
         self.layout.addLayout(self.navi)
-        
 
         # timer
         self.timer = QTimer()
         self.timer.setSingleShot(False)
-
-
-

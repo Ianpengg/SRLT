@@ -101,6 +101,9 @@ class Patch_DataLoader:
     def is_valid(self):
         return os.path.exists(self.image_path)
 
+    def set_patch_num(self, patch_num):
+        self.patch_num = patch_num
+
     def load_data(self, new_id):
         self.id = new_id
 

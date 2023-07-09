@@ -172,7 +172,6 @@ class ButtonController:
             self.controller.mask_mode = True
             self.controller.showCurrentFrame()
 
-
     def on_switch_lidar_mask(self):
         # set brightness to zero to show the mask
         # set brightness back to current value to see original image
@@ -187,7 +186,6 @@ class ButtonController:
             self.controller.showCurrentFrame()
 
     def on_switch_threshold(self):
-
         if not self.controller.thres_mode:
             self.controller.ui.threshold_bar.setValue(self.controller.threshold)
             self.controller.thres_mode = True
@@ -203,3 +201,27 @@ class ButtonController:
     def on_switch_to_box(self):
         self.controller.curr_interaction = "Box"
         self.controller.ui.radio_bbox.toggle()
+
+    def on_switch_to_patch_0(self):
+        self.controller.dataloader.set_patch_num(0)
+        self.controller.dataloader.load_data(self.controller.cursor)
+        self.controller.reset_this_interaction()
+        self.controller.showCurrentFrame()
+
+    def on_switch_to_patch_1(self):
+        self.controller.dataloader.set_patch_num(1)
+        self.controller.dataloader.load_data(self.controller.cursor)
+        self.controller.reset_this_interaction()
+        self.controller.showCurrentFrame()
+
+    def on_switch_to_patch_2(self):
+        self.controller.dataloader.set_patch_num(2)
+        self.controller.dataloader.load_data(self.controller.cursor)
+        self.controller.reset_this_interaction()
+        self.controller.showCurrentFrame()
+
+    def on_switch_to_patch_3(self):
+        self.controller.dataloader.set_patch_num(3)
+        self.controller.dataloader.load_data(self.controller.cursor)
+        self.controller.reset_this_interaction()
+        self.controller.showCurrentFrame()

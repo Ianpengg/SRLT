@@ -85,3 +85,19 @@ class Shortcut:
         QShortcut(QKeySequence("Ctrl+2"), self.MainWidget).activated.connect(
             self.Buttoncontroller.on_switch_to_free
         )
+
+        QShortcut(QKeySequence(Qt.Key_Z), self.MainWidget).activated.connect(
+            self.Buttoncontroller.on_switch_to_patch_0
+        )
+
+        QShortcut(QKeySequence(Qt.Key_X), self.MainWidget).activated.connect(
+            self.Buttoncontroller.on_switch_to_patch_1
+        )
+
+        QShortcut(QKeySequence(Qt.Key_C), self.MainWidget).activated.connect(
+            self.Buttoncontroller.on_switch_to_patch_2
+        )
+
+        QShortcut(QKeySequence(Qt.Key_V), self.MainWidget).activated.connect(
+            self.Buttoncontroller.on_switch_to_patch_3
+        )
