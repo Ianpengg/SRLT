@@ -172,6 +172,20 @@ class ButtonController:
             self.controller.mask_mode = True
             self.controller.showCurrentFrame()
 
+
+    def on_switch_lidar_mask(self):
+        # set brightness to zero to show the mask
+        # set brightness back to current value to see original image
+
+        # save current brightness
+
+        if self.controller.lidar_mask_mode:
+            self.controller.lidar_mask_mode = False
+            self.controller.showCurrentFrame()
+        else:
+            self.controller.lidar_mask_mode = True
+            self.controller.showCurrentFrame()
+
     def on_switch_threshold(self):
 
         if not self.controller.thres_mode:

@@ -31,6 +31,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model_type", type=str, default="vit_h", help="specify the model type"
     )
+    parser.add_argument(
+        "--patch_num", type=int, default="-1", help="specify which patch is used"
+    )
     args = parser.parse_args()
 
     data_root = os.path.join(args.data_root, args.folder_name)
@@ -42,6 +45,7 @@ if __name__ == "__main__":
     sam_checkpoint = args.checkpoint
     model_type = args.model_type
 
+    patch_num = args.patch_num
     device = "cuda"
 
     sam = sam_model_registry[model_type](checkpoint=sam_checkpoint)
@@ -49,6 +53,6 @@ if __name__ == "__main__":
     sam_controller = SamPredictor(sam)
 
     app = QtWidgets.QApplication(sys.argv)
-    window = MainWindow_controller(data_root, radar_timestamps, sam_controller)
+    window = MainWindow_controller(data_root, radar_timestamps, sam_controller, patch_num)
     window.show()
     sys.exit(app.exec_())

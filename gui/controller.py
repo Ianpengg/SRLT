@@ -33,23 +33,28 @@ from .utils.image_method import ImageMethod
 from .btn_controller import ButtonController
 from .inference_core import Inference_core
 from .shortcut import Shortcut
+import ipdb
 
 
 class MainWindow_controller(QtWidgets.QWidget):
-    def __init__(self, files_path, timestamps, sam_controller):
+    def __init__(self, files_path, timestamps, sam_controller, patch_num):
         super().__init__()  # in python3, super(Class, self).xxx = super().xxx
 
         # Set up some initial values
-        self.cursor = 5  # represent the current frame index
+        self.cursor = 6  # represent the current frame index
         self.radar_timestamps = timestamps
         self.files_path = files_path
         self.num_frames = len(self.radar_timestamps)
-
-        self.dataloader = DataLoader(self.files_path, self.radar_timestamps)
+        if patch_num != -1:
+            self.dataloader = Patch_DataLoader(
+                self.files_path, self.radar_timestamps, patch_num
+            )
+        else:
+            self.dataloader = DataLoader(self.files_path, self.radar_timestamps)
         self.dataloader.load_data(self.cursor)
         self.image = self.dataloader.load_image()
         self.mask = self.dataloader.load_mask()
-
+        self.lidar_mask = self.dataloader.load_lidar_mask()
         self.width, self.height = self.image.shape[:2]
         self.Buttoncontroller = ButtonController(self)
         self.Shortcut = Shortcut(self, self.Buttoncontroller)
@@ -81,11 +86,12 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.vis_alpha = np.zeros((self.height, self.width, 1), dtype=np.float32)
         self.brush_vis_map = np.zeros((self.height, self.width, 3), dtype=np.uint8)
         self.brush_vis_alpha = np.zeros((self.height, self.width, 1), dtype=np.float32)
+        self.lidar_mask_alpha = np.zeros((self.height, self.width, 1), dtype=np.float32)
         self.vis_hist = deque(maxlen=100)
         self.on_showing = None
         self.brush_size = 1
         self.num_objects = 1
-        self.brightness = 20
+        self.brightness = 50
         self.contrast = 20
         self.threshold = 20
         self.current_brightness = 0
@@ -121,9 +127,13 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.is_saved_flag = False
         self.thres_mode = False
         self.mask_mode = True
+        self.lidar_mask_mode = True
         self.interacted_mask = np.zeros(
             (self.num_objects, self.height, self.width), dtype=np.uint8
         )
+
+        self.ui.brightness_bar.setValue(self.brightness)
+
         self.reset_this_interaction()
         self.showCurrentFrame()
         self.timestamp_push_text()
@@ -322,8 +332,11 @@ class MainWindow_controller(QtWidgets.QWidget):
 
     def compose_current_im(self):
         self.image = self.dataloader.load_image()
+
         if self.thres_mode:
             self.image = self.image_method.image_to_threshold(self.image)
+        elif self.lidar_mask_mode:
+            self.lidar_mask, self.lidar_mask_alpha = self.dataloader.load_lidar_mask()
 
         self.image = self.image_method.image_to_brightness(self.image)
         self.image = self.image_method.image_to_contrast(self.image)
@@ -363,10 +376,16 @@ class MainWindow_controller(QtWidgets.QWidget):
         vis_alpha = self.vis_alpha
         brush_vis_map = self.brush_vis_map
         brush_vis_alpha = self.brush_vis_alpha
-
+        lidar_mask_map = self.lidar_mask
+        lidar_mask_alpha = self.lidar_mask_alpha
         ## use to display original image and mask
-        self.viz_with_stroke = self.viz * (1 - vis_alpha) + vis_map * vis_alpha
 
+        self.viz_with_stroke = self.viz * (1 - vis_alpha) + vis_map * vis_alpha
+        if self.lidar_mask_mode:
+            self.viz_with_stroke = (
+                self.viz_with_stroke * (1 - lidar_mask_alpha)
+                + lidar_mask_map * lidar_mask_alpha
+            )
         ## use to display brush
         self.viz_with_stroke = (
             self.viz_with_stroke * (1 - brush_vis_alpha)
