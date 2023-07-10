@@ -34,6 +34,7 @@ from .btn_controller import ButtonController
 from .inference_core import Inference_core
 from .shortcut import Shortcut
 import ipdb
+import time
 
 
 class MainWindow_controller(QtWidgets.QWidget):
@@ -54,7 +55,8 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.dataloader.load_data(self.cursor)
         self.image = self.dataloader.load_image()
         self.mask = self.dataloader.load_mask()
-        self.lidar_mask = self.dataloader.load_lidar_mask()
+        # self.lidar_mask = self.dataloader.load_lidar_mask()
+        # self.camera_image = self.dataloader.load_camera()
         self.width, self.height = self.image.shape[:2]
         self.Buttoncontroller = ButtonController(self)
         self.Shortcut = Shortcut(self, self.Buttoncontroller)
@@ -348,12 +350,12 @@ class MainWindow_controller(QtWidgets.QWidget):
 
         if self.thres_mode:
             self.image = self.image_method.image_to_threshold(self.image)
-        elif self.lidar_mask_mode:
+        elif self.lidar_mask_mode and self.current_patch != -1:
             self.lidar_mask, self.lidar_mask_alpha = self.dataloader.load_lidar_mask()
+            self.camera_image = self.dataloader.load_camera()
 
         self.image = self.image_method.image_to_brightness(self.image)
         self.image = self.image_method.image_to_contrast(self.image)
-
         if not self.is_edited[self.cursor]:
             self.current_mask[self.cursor] = self.dataloader.load_mask()
         self.viz = overlay_moving_mask(self.image, self.current_mask[self.cursor])
@@ -368,7 +370,8 @@ class MainWindow_controller(QtWidgets.QWidget):
         patch = self.viz_with_stroke[ey - r : ey + r, ex - r : ex + r, :].astype(
             np.uint8
         )
-
+        if self.current_patch != -1:
+            patch = self.camera_image
         height, width, channel = patch.shape
         bytesPerLine = 3 * width
         qImg = QImage(patch.data, width, height, bytesPerLine, QImage.Format_RGB888)
@@ -389,12 +392,13 @@ class MainWindow_controller(QtWidgets.QWidget):
         vis_alpha = self.vis_alpha
         brush_vis_map = self.brush_vis_map
         brush_vis_alpha = self.brush_vis_alpha
-        lidar_mask_map = self.lidar_mask
-        lidar_mask_alpha = self.lidar_mask_alpha
-        ## use to display original image and mask
+        if self.current_patch != -1:
+            lidar_mask_map = self.lidar_mask
+            lidar_mask_alpha = self.lidar_mask_alpha
+            ## use to display original image and mask
 
         self.viz_with_stroke = self.viz * (1 - vis_alpha) + vis_map * vis_alpha
-        if self.lidar_mask_mode:
+        if self.lidar_mask_mode and self.current_patch != -1:
             self.viz_with_stroke = (
                 self.viz_with_stroke * (1 - lidar_mask_alpha)
                 + lidar_mask_map * lidar_mask_alpha
@@ -488,7 +492,6 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.interacted_mask[0] = self.dataloader.load_mask()
         self.update_interacted_mask()
         self.clear_visualization()
-
         self.interaction = None
         self.this_frame_interactions = []
         self.ui.undo_button.setDisabled(True)

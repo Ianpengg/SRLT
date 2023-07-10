@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import cv2
+import time
 
 
 def find(s, ch):
@@ -11,6 +12,19 @@ def file_to_id(str_):
     idx = str_[find(str_, "/")[-1] + 1 : str_.find(".npy")]
     idx = int(idx)
     return idx
+
+
+def get_sync(target_ts, total_ts):
+    """
+    get the closest id in timestamps given the target_ts
+    :param t: timestamp in seconds
+    :
+    :return: the closest id
+    :rtype: int
+    """
+
+    idx = np.argmin(np.abs(total_ts - target_ts))
+    return idx, total_ts[idx]
 
 
 class DataLoader:
@@ -98,6 +112,23 @@ class Patch_DataLoader:
         self.mask_path = None
         self.patch_num = patch_num
 
+        seq = "scene_1"
+        data_path = "/data/ITRI"
+        self.camera_path = os.path.join(data_path, seq)
+        self.camera_path = os.path.join(self.camera_path, "gige_3")
+
+        camera_timestamps_path = os.path.join(
+            data_path + f"/{seq}", "gige_3.timestamps"
+        )
+        radar_timestamps_path = os.path.join(data_path + f"/{seq}", "radar.timestamps")
+
+        self.camera_timestamps = np.loadtxt(camera_timestamps_path, dtype=np.int64)
+        self.radar_timestamps = np.loadtxt(radar_timestamps_path, dtype=np.int64)
+        self.dif = (
+            self.camera_timestamps[2040]
+            - 1602063172652144760  # difference between camera gige_3 and radar in scene_1
+        )
+
     def is_valid(self):
         return os.path.exists(self.image_path)
 
@@ -119,7 +150,7 @@ class Patch_DataLoader:
         # Add the patch mask loading method, which is named with format like "timestamp_{patch_num}.png"
         self.mask_path = (
             self.file_path
-            + "mask/"
+            + "itri-1600-50finetune/"
             + str(self.timestamp[self.id])
             + f"_{self.patch_num}"
             + ".png"
@@ -130,7 +161,7 @@ class Patch_DataLoader:
 
         self.lidar_mask_path = (
             self.file_path
-            + "lidar_mask_400_crop/"
+            + "lidar_mask_400_crop_morph_1/"
             + str(self.timestamp[self.id])
             + f"_{self.patch_num}"
             + ".png"
@@ -138,6 +169,17 @@ class Patch_DataLoader:
         self.lidar_range_mask_path = (
             self.file_path + f"1600x1600_range_mask_{self.patch_num}.png"
         )
+
+    def load_camera(self):
+        start = time.time()
+        camera_idx, camera_timestamp = get_sync(
+            self.timestamp[self.id] + self.dif, self.camera_timestamps
+        )
+        camera_filename = os.path.join(self.camera_path, f"{camera_timestamp}.jpeg")
+        camera_image = cv2.imread(camera_filename, 1)
+        camera_image = cv2.cvtColor(camera_image, cv2.COLOR_BGR2RGB)
+        camera_image = cv2.resize(camera_image, (512, 512))
+        return camera_image
 
     def load_image(self):
         if self.is_valid():

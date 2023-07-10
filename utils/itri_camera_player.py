@@ -14,8 +14,9 @@ def onTrackbarChange(idx):
     camera_image = cv2.imread(camera_filename, 1)
     camera_image = cv2.resize(camera_image, (512, 512))
 
-    radar_filename = os.path.join(det_motion_path, f"{radar_timestamps[idx]}.png")
+    radar_filename = os.path.join(radar_path, f"{radar_timestamps[idx]}.png")
     radar_image = cv2.imread(radar_filename, 1)
+    radar_image = cv2.resize(radar_image, (512, 512))
 
     combine = np.concatenate((camera_image, radar_image), axis=1)
     cv2.imshow("combine", combine)
@@ -45,16 +46,14 @@ def UnixTimeToSec(unix_timestamp):
 
 
 data_path = "/data/ITRI"
-seq = "scene"
+seq = "scene_1"
 debug = True
-det_motion_path = (
-    "/data/Codespace/RaMNet/logs/compare_output/fintune-500-epoch02-0649-mask"
-)
-# mask_only_result_path = "/data/Codespace/RaMNet/logs/output_result/oxford-epoch18-0583"
-# det_motion_path = os.path.join(det_motion_path, seq)
-# det_motion_path = mask_only_result_path
+# det_motion_path = (
+#     "/data/Codespace/RaMNet/logs/compare_output/fintune-500-epoch02-0649-mask"
+# )
+
 radar_path = os.path.join(data_path, seq)
-radar_path = os.path.join(radar_path, "processed-512/radar")
+radar_path = os.path.join(radar_path, "processed-1600/radar")
 
 
 image_path = os.path.join(data_path, seq)
@@ -68,13 +67,14 @@ radar_timestamps = np.loadtxt(radar_timestamps_path, dtype=np.int64)
 
 
 dif = (
-    camera_timestamps[40] - radar_timestamps[0]
+    camera_timestamps[2040]
+    - 1602063172652144760  # difference between camera gige_3 and radar in scene_1
 )  # compensate the time gap between camera and radar timestamps
 
-target = sorted(os.listdir(det_motion_path))[0].split(".")[0]
-idx, radar_timestamp = get_sync(np.int64(target), radar_timestamps)
-radar_timestamps = radar_timestamps[idx:]
-idx = 5
+# target = sorted(os.listdir(det_motion_path))[0].split(".")[0]
+# idx, radar_timestamp = get_sync(np.int64(target), radar_timestamps)
+# radar_timestamps = radar_timestamps[idx:]
+idx = 6
 cv2.namedWindow("combine", cv2.WINDOW_NORMAL)
 cv2.resizeWindow("combine", 2048, 1024)
 cv2.createTrackbar("Slider", "combine", idx, len(radar_timestamps), onTrackbarChange)
@@ -83,12 +83,14 @@ while True:
     camera_idx, camera_timestamp = get_sync(
         radar_timestamps[idx] + dif, camera_timestamps
     )
+    print(camera_idx)
     camera_filename = os.path.join(image_path, f"{camera_timestamp}.jpeg")
     camera_image = cv2.imread(camera_filename, 1)
     camera_image = cv2.resize(camera_image, (512, 512))
 
-    radar_filename = os.path.join(det_motion_path, f"{radar_timestamps[idx]}.jpg")
+    radar_filename = os.path.join(radar_path, f"{radar_timestamps[idx]}.png")
     radar_image = cv2.imread(radar_filename, 1)
+    radar_image = cv2.resize(radar_image, (512, 512))
 
     if debug:
         ic(UnixTimeToSec(radar_timestamps[idx] + dif))
