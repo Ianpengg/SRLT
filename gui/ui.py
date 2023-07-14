@@ -152,7 +152,8 @@ class Ui_main_widget(object):
 
         # Console on the GUI
         self.console = QPlainTextEdit()
-        self.console.setMinimumSize(QtCore.QSize(100, 100))
+        self.console.setMinimumSize(QtCore.QSize(100, 20))
+        self.console.setMaximumHeight(50)
         self.console.setReadOnly(True)
 
         # To enable/disable auto_save

@@ -42,7 +42,7 @@ class MainWindow_controller(QtWidgets.QWidget):
         super().__init__()  # in python3, super(Class, self).xxx = super().xxx
 
         # Set up some initial values
-        self.cursor = 6  # represent the current frame index
+        self.cursor = 5  # represent the current frame index
         self.radar_timestamps = timestamps
         self.files_path = files_path
         self.num_frames = len(self.radar_timestamps)
@@ -146,7 +146,6 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.algo_timer = Timer()
         self.user_timer = Timer()
         self.console_push_text("Initialized.")
-
         self.sam_controller.set_image(self.image)
 
     def resizeEvent(self, event):
@@ -347,12 +346,13 @@ class MainWindow_controller(QtWidgets.QWidget):
 
     def compose_current_im(self):
         self.image = self.dataloader.load_image()
+        self.camera_image = self.dataloader.load_camera()
 
+        # display mode switch
         if self.thres_mode:
             self.image = self.image_method.image_to_threshold(self.image)
         elif self.lidar_mask_mode and self.current_patch != -1:
             self.lidar_mask, self.lidar_mask_alpha = self.dataloader.load_lidar_mask()
-            self.camera_image = self.dataloader.load_camera()
 
         self.image = self.image_method.image_to_brightness(self.image)
         self.image = self.image_method.image_to_contrast(self.image)
@@ -521,9 +521,11 @@ class MainWindow_controller(QtWidgets.QWidget):
             self.interacted_mask = interaction.update()
             self.update_interacted_mask()
             self.right_click = self.left_click = False
+            self.ui.undo_button.setDisabled(False)
         elif self.curr_interaction == "Box":
             if self.right_click:
                 self.right_click = False
+                # self.ui.undo_button.setDisabled(True)
             elif self.left_click:
                 self.on_motion(event)
                 interaction.end_path()
@@ -531,9 +533,10 @@ class MainWindow_controller(QtWidgets.QWidget):
                 self.interacted_mask = interaction.update()
                 self.update_interacted_mask()
                 self.left_click = False
+                self.ui.undo_button.setDisabled(False)
 
         self.pressed = self.ctrl_key = False
-        self.ui.undo_button.setDisabled(False)
+
         self.user_timer.start()
 
     def on_motion(self, event):
@@ -604,7 +607,8 @@ class MainWindow_controller(QtWidgets.QWidget):
                 new_interaction.set_size(self.brush_size)
         elif self.curr_interaction == "Box":
             if last_interaction is None or type(last_interaction) != BoxInteraction:
-                self.complete_interaction()
+                if self.left_click:
+                    self.complete_interaction()
                 self.mask = self.dataloader.load_mask()
                 if not self.embedding_created:
                     self.sam_controller.set_image(self.dataloader.load_image())

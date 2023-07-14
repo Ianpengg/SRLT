@@ -1,6 +1,7 @@
 # from .utils.file_utils import load_image, load_mask, load_data, save_mask
 
 from .interact.interaction import FreeInteraction
+import numpy as np
 
 
 class ButtonController:
@@ -203,25 +204,25 @@ class ButtonController:
         self.controller.ui.radio_bbox.toggle()
 
     def on_switch_to_patch_0(self):
-        self.controller.dataloader.set_patch_num(0)
+        self.controller.dataloader.set_patch_index(np.array([0, 0]))
         self.controller.dataloader.load_data(self.controller.cursor)
         self.controller.reset_this_interaction()
         self.controller.showCurrentFrame()
 
     def on_switch_to_patch_1(self):
-        self.controller.dataloader.set_patch_num(1)
+        self.controller.dataloader.set_patch_index(np.array([1, 1]))
         self.controller.dataloader.load_data(self.controller.cursor)
         self.controller.reset_this_interaction()
         self.controller.showCurrentFrame()
 
     def on_switch_to_patch_2(self):
-        self.controller.dataloader.set_patch_num(2)
+        self.controller.dataloader.set_patch_index(np.array([2, 2]))
         self.controller.dataloader.load_data(self.controller.cursor)
         self.controller.reset_this_interaction()
         self.controller.showCurrentFrame()
 
     def on_switch_to_patch_3(self):
-        self.controller.dataloader.set_patch_num(3)
+        self.controller.dataloader.set_patch_index(np.array([3, 3]))
         self.controller.dataloader.load_data(self.controller.cursor)
         self.controller.reset_this_interaction()
         self.controller.showCurrentFrame()
