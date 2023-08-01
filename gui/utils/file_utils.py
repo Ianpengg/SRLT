@@ -161,7 +161,7 @@ class Patch_DataLoader:
             self.mask_origin = cv2.imread(self.mask_path, 0)
 
         self.lidar_mask_path = (
-            self.file_path + "lidar_mask_morph/" + str(self.timestamp[self.id]) + ".png"
+            self.file_path + "lidar_mask/" + str(self.timestamp[self.id]) + ".png"
         )
         self.lidar_range_mask_path = self.file_path + f"1600x1600_range_mask.png"
 
@@ -214,10 +214,16 @@ class Patch_DataLoader:
             return self.lidar_mask, None
         else:
             self.lidar_range_mask = cv2.imread(self.lidar_range_mask_path, 1)
-            self.lidar_mask = cv2.imread(self.lidar_mask_path, 1)
+            self.lidar_mask = cv2.imread(self.lidar_mask_path, 0)
+            self.lidar_color = np.zeros((*self.lidar_mask.shape[:2], 3), dtype=np.uint8)
+            self.lidar_color[:, :, 1] = self.lidar_mask * 255
+
+            # Swap the blue and green channels
+            self.lidar_mask = self.lidar_color
 
             combine = cv2.addWeighted(self.lidar_mask, 1, self.lidar_range_mask, 1, 0)
             self.lidar_mask = cv2.cvtColor(combine, cv2.COLOR_BGR2RGB)
+
             self.lidar_mask = self.lidar_mask[
                 self.patch_index[0]
                 * self.patch_size : (self.patch_index[0] + 1)
@@ -228,7 +234,7 @@ class Patch_DataLoader:
             lidar_mask_alpha = np.zeros(gray.shape, dtype=np.float32)
 
             # gray = gray[gray > 0]
-            lidar_mask_alpha[gray > 0] = 0.4
+            lidar_mask_alpha[gray > 0] = 0.6
             lidar_mask_alpha = np.expand_dims(lidar_mask_alpha, axis=2)
             return self.lidar_mask, lidar_mask_alpha
 

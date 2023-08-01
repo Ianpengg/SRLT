@@ -226,3 +226,9 @@ class ButtonController:
         self.controller.dataloader.load_data(self.controller.cursor)
         self.controller.reset_this_interaction()
         self.controller.showCurrentFrame()
+
+    def on_switch_object_2(self):
+        self.controller.current_object = 2
+
+    def on_switch_object_1(self):
+        self.controller.current_object = 1

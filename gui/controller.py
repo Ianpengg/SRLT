@@ -92,7 +92,7 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.vis_hist = deque(maxlen=100)
         self.on_showing = None
         self.brush_size = 1
-        self.num_objects = 1
+        self.num_objects = 2
         self.brightness = 20
         self.contrast = 20
         self.threshold = 20
@@ -371,7 +371,10 @@ class MainWindow_controller(QtWidgets.QWidget):
             np.uint8
         )
         if self.current_patch != -1:
-            patch = self.camera_image
+            # patch = self.camera_image[ey - r : ey + r, ex - r : ex + r, :].astype(
+            #     np.uint8
+            # )
+            patch = self.camera_image.astype(np.uint8)
         height, width, channel = patch.shape
         bytesPerLine = 3 * width
         qImg = QImage(patch.data, width, height, bytesPerLine, QImage.Format_RGB888)
@@ -485,11 +488,13 @@ class MainWindow_controller(QtWidgets.QWidget):
                 (self.num_objects, self.height, self.width), dtype=np.uint8
             )
             self.interacted_mask[0] = self.dataloader.load_mask()
+            self.interacted_mask[1] = self.dataloader.load_mask()
             self.ui.undo_button.setDisabled(False)
 
     def reset_this_interaction(self):
         self.complete_interaction()
         self.interacted_mask[0] = self.dataloader.load_mask()
+        self.interacted_mask[1] = self.dataloader.load_mask()
         self.update_interacted_mask()
         self.clear_visualization()
         self.interaction = None
@@ -498,7 +503,17 @@ class MainWindow_controller(QtWidgets.QWidget):
 
     def update_interacted_mask(self):
         # self.processor.update_mask_only(self.interacted_mask, self.cursur)
-        self.current_mask[self.cursor] = self.interacted_mask[0]
+        combined_mask = np.zeros_like(self.interacted_mask[0])
+
+        combined_mask[self.interacted_mask[0] != 0] = 1
+        combined_mask[self.interacted_mask[1] != 0] = 2
+
+        # Set overlapping region to 1
+        combined_mask[
+            (self.interacted_mask[0] != 0) & (self.interacted_mask[1] != 0)
+        ] = 1
+        print("update", np.unique(combined_mask))
+        self.current_mask[self.cursor] = combined_mask
         self.is_edited[self.cursor] = True
         self.showCurrentFrame()
 

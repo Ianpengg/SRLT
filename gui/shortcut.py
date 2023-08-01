@@ -101,3 +101,10 @@ class Shortcut:
         QShortcut(QKeySequence(Qt.Key_V), self.MainWidget).activated.connect(
             self.Buttoncontroller.on_switch_to_patch_3
         )
+
+        QShortcut(QKeySequence(Qt.Key_B), self.MainWidget).activated.connect(
+            self.Buttoncontroller.on_switch_object_1
+        )
+        QShortcut(QKeySequence(Qt.Key_N), self.MainWidget).activated.connect(
+            self.Buttoncontroller.on_switch_object_2
+        )
