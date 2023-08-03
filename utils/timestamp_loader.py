@@ -23,3 +23,9 @@ def radiate_timestamp_loader(root_path):
         timestamps_path, delimiter=" ", usecols=[3], dtype=np.float64
     )
     return radar_timestamps
+
+
+### Add your own timestamp loader here
+# @registry.register()
+# def your_timestamp_loader(root_path):
+#    ...
