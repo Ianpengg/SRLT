@@ -32,7 +32,10 @@ if __name__ == "__main__":
         "--model_type", type=str, default="vit_h", help="specify the model type"
     )
     parser.add_argument(
-        "--patch_num", type=int, default="-1", help="specify which patch is used"
+        "--patch_num",
+        type=int,
+        default="-1",
+        help="if number is not euqal to -1, then use patch mode for large image",
     )
     args = parser.parse_args()
 
@@ -53,6 +56,8 @@ if __name__ == "__main__":
     sam_controller = SamPredictor(sam)
 
     app = QtWidgets.QApplication(sys.argv)
-    window = MainWindow_controller(data_root, radar_timestamps, sam_controller, patch_num)
+    window = MainWindow_controller(
+        data_root, radar_timestamps, sam_controller, patch_num
+    )
     window.show()
     sys.exit(app.exec_())
