@@ -127,7 +127,7 @@ class Patch_DataLoader:
         self.camera_timestamps = np.loadtxt(camera_timestamps_path, dtype=np.int64)
         self.radar_timestamps = np.loadtxt(radar_timestamps_path, dtype=np.int64)
         self.dif = (
-            self.camera_timestamps[2040]
+            self.camera_timestamps[2030]
             - 1602063172652144760  # difference between camera gige_3 and radar in scene_1
         )
 

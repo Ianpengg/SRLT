@@ -46,7 +46,9 @@ class MainWindow_controller(QtWidgets.QWidget):
         self.radar_timestamps = timestamps
         self.files_path = files_path
         self.num_frames = len(self.radar_timestamps)
+        self.patchmode = False
         if patch_num != -1:
+            self.patchmode = True
             self.dataloader = Patch_DataLoader(
                 self.files_path, self.radar_timestamps, patch_num
             )
@@ -346,7 +348,8 @@ class MainWindow_controller(QtWidgets.QWidget):
 
     def compose_current_im(self):
         self.image = self.dataloader.load_image()
-        self.camera_image = self.dataloader.load_camera()
+        if self.patchmode:
+            self.camera_image = self.dataloader.load_camera()
 
         # display mode switch
         if self.thres_mode:
