@@ -8,7 +8,7 @@ SRLT is a graphical scanning radar image annotation tool.
 
 It's written in Python and uses Qt for its graphical interface.
 
-**This tool currently only supports the Oxford Radar Robotcar Dataset**   
+**This tool currently only supports the Scanning Radar Image**   
 
 
 ## Features
@@ -43,32 +43,40 @@ cd SRLT; pip install -e .
 
 
 ## Data Preparation
-Please follow the pre-processing pipeline in  [RaMNet](https://github.com/Ianpengg/RaMNet)
+
+### radar 
+Scanning radar images (in cartesian form) which should be the same size in all files
+
+### lidar mask
+The corresponding LiDAR BEV images are stored in the "lidar_mask" folder. We first project the LiDAR data onto the Bird's Eye View (BEV) and ensure that the pixel resolution remains the same as the radar image.
+
+### range mask
+The range mask consists of multiple rings that indicate the range from the center of the radar image.
+
+### radar.timestamps 
+This timestamps file should store all filenames in the `radar` folder.
+
+We have provide function that can extract the timestamps from the radar folder also the function that project LiDAR to BEV 
+
+###
+
 ```
 └── DATA_PATH
-  ├── gt
-  ├── radar
-  ├── vo
-  ├── processed/
-  |   ├── radar/
-  |   | ├── 1547120787893007.jpg
-  |   | ├── 1547120788140671.jpg
-  |   | └── ...
-  |   ├── radar_history/
-  |   |   ├── 1547120787893007_1.jpg
-  |   |   ├── 1547120788140671_1.jpg
-  |   |   └── ...
-  |   ├── mask/
-  |   |     ├── 1547120787893007.png
-  |   |     ├── 1547120788140671.png
-  |   |     └── ...
-  |   ├── train.txt  # filename list for train 
-  |   ├── val.txt  # filename list for validation 
-  |   └── test.txt  # filename list for test 
+  ├── radar/
+  | ├── 1547120787893007.jpg
+  | ├── 1547120788140671.jpg
+  | └── ...
+  ├── lidar_mask/
+  | ├── 1547120787893007.jpg
+  | ├── 1547120788140671.jpg
+  | └── ...
   |
+  ├── range_mask.png
   ├── radar.timestamps
   ├── ...
 ```
+
+
 
 ## How to use 
 

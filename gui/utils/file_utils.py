@@ -104,6 +104,12 @@ class DataLoader:
 
 class Patch_DataLoader:
     def __init__(self, file_path, radar_timestamps, patch_num):
+        self.patch_range = {
+            0: [0, 875, 0, 875],
+            1: [0, 875, 429, 1304],
+            2: [429, 1304, 0, 875],
+            3: [429, 1304, 429, 1304],
+        }
         self.file_path = file_path
         self.timestamp = radar_timestamps
         self.id = None
@@ -111,7 +117,7 @@ class Patch_DataLoader:
         self.image = None
         self.mask = None
         self.mask_path = None
-        self.patch_index = np.array([1, 1])
+        self.patch_index = 0
         self.patch_size = 400
         self.mask_origin = None
         seq = "scene_1"
@@ -134,7 +140,7 @@ class Patch_DataLoader:
     def is_valid(self):
         return os.path.exists(self.image_path)
 
-    def set_patch_index(self, patch_index: np.ndarray):
+    def set_patch_index(self, patch_index: int):
         self.patch_index = patch_index
 
     def load_data(self, new_id):
@@ -182,10 +188,12 @@ class Patch_DataLoader:
             self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
 
             self.image = self.image[
-                self.patch_index[0]
-                * self.patch_size : (self.patch_index[0] + 1)
-                * self.patch_size,
-                600:1000,
+                self.patch_range[self.patch_index][0] : self.patch_range[
+                    self.patch_index
+                ][1],
+                self.patch_range[self.patch_index][2] : self.patch_range[
+                    self.patch_index
+                ][3],
             ]
 
             return self.image
@@ -202,16 +210,19 @@ class Patch_DataLoader:
             # since the value store in mask is 0, 255 in uint8 we need to remap it to the 0, 1 to function properly in the gui
             self.mask = (self.mask // 255).astype(np.uint8)
             return self.mask[
-                self.patch_index[0]
-                * self.patch_size : (self.patch_index[0] + 1)
-                * self.patch_size,
-                600:1000,
+                self.patch_range[self.patch_index][0] : self.patch_range[
+                    self.patch_index
+                ][1],
+                self.patch_range[self.patch_index][2] : self.patch_range[
+                    self.patch_index
+                ][3],
             ]
 
     def load_lidar_mask(self):
         if not os.path.exists(self.lidar_mask_path):
-            self.lidar_mask = np.zeros((self.patch_size, self.patch_size, 3))
-            return self.lidar_mask, None
+            self.lidar_mask = np.zeros((875, 875, 3))
+            self.lidar_mask_alpha = np.zeros(self.lidar_mask.shape, dtype=np.float32)
+            return self.lidar_mask, self.lidar_mask_alpha
         else:
             self.lidar_range_mask = cv2.imread(self.lidar_range_mask_path, 1)
             self.lidar_mask = cv2.imread(self.lidar_mask_path, 0)
@@ -244,10 +255,12 @@ class Patch_DataLoader:
 
         # We only update the current patch area
         self.mask_origin[
-            self.patch_index[0]
-            * self.patch_size : (self.patch_index[0] + 1)
-            * self.patch_size,
-            600:1000,
+            self.patch_range[self.patch_index][0] : self.patch_range[self.patch_index][
+                1
+            ],
+            self.patch_range[self.patch_index][2] : self.patch_range[self.patch_index][
+                3
+            ],
         ] = mask
 
         cv2.imwrite(self.mask_path, (self.mask_origin).astype(np.uint8))

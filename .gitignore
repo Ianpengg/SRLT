@@ -6,3 +6,4 @@ __pycache__/*
 *.pth
 srlt.egg-info/*
 data/output/*
+data/annotated_result/*

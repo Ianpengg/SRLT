@@ -373,8 +373,8 @@ class MainWindow_controller(QtWidgets.QWidget):
         patch = self.viz_with_stroke[ey - r : ey + r, ex - r : ex + r, :].astype(
             np.uint8
         )
-        if self.current_patch != -1:
-            patch = self.camera_image
+        # if self.current_patch != -1:
+        #     patch = self.camera_image
         height, width, channel = patch.shape
         bytesPerLine = 3 * width
         qImg = QImage(patch.data, width, height, bytesPerLine, QImage.Format_RGB888)
