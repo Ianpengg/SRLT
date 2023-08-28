@@ -348,8 +348,8 @@ class MainWindow_controller(QtWidgets.QWidget):
 
     def compose_current_im(self):
         self.image = self.dataloader.load_image()
-        if self.patchmode:
-            self.camera_image = self.dataloader.load_camera()
+        # if self.patchmode:
+        #     self.camera_image = self.dataloader.load_camera()
 
         # display mode switch
         if self.thres_mode:
@@ -395,6 +395,7 @@ class MainWindow_controller(QtWidgets.QWidget):
         vis_alpha = self.vis_alpha
         brush_vis_map = self.brush_vis_map
         brush_vis_alpha = self.brush_vis_alpha
+
         if self.current_patch != -1:
             lidar_mask_map = self.lidar_mask
             lidar_mask_alpha = self.lidar_mask_alpha

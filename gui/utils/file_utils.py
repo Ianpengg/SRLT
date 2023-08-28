@@ -104,11 +104,19 @@ class DataLoader:
 
 class Patch_DataLoader:
     def __init__(self, file_path, radar_timestamps, patch_num):
+        # setting for long range (slow and small but long range )
+        # self.patch_range = {
+        #     0: [0, 875, 0, 875],
+        #     1: [0, 875, 429, 1304],
+        #     2: [429, 1304, 0, 875],
+        #     3: [429, 1304, 429, 1304],
+        # }
+        # setting for short range (faster and large but short range )
         self.patch_range = {
-            0: [0, 875, 0, 875],
-            1: [0, 875, 429, 1304],
-            2: [429, 1304, 0, 875],
-            3: [429, 1304, 429, 1304],
+            0: [217, 800, 217, 800],
+            1: [217, 800, 504, 1087],
+            2: [504, 1087, 217, 800],
+            3: [504, 1087, 504, 1087],
         }
         self.file_path = file_path
         self.timestamp = radar_timestamps
@@ -118,24 +126,8 @@ class Patch_DataLoader:
         self.mask = None
         self.mask_path = None
         self.patch_index = 0
-        self.patch_size = 400
+        self.patch_size = 326
         self.mask_origin = None
-        seq = "scene_1"
-        data_path = "/data/ITRI"
-        self.camera_path = os.path.join(data_path, seq)
-        self.camera_path = os.path.join(self.camera_path, "gige_3")
-
-        camera_timestamps_path = os.path.join(
-            data_path + f"/{seq}", "gige_3.timestamps"
-        )
-        radar_timestamps_path = os.path.join(data_path + f"/{seq}", "radar.timestamps")
-
-        self.camera_timestamps = np.loadtxt(camera_timestamps_path, dtype=np.int64)
-        self.radar_timestamps = np.loadtxt(radar_timestamps_path, dtype=np.int64)
-        self.dif = (
-            self.camera_timestamps[2030]
-            - 1602063172652144760  # difference between camera gige_3 and radar in scene_1
-        )
 
     def is_valid(self):
         return os.path.exists(self.image_path)
@@ -153,10 +145,7 @@ class Patch_DataLoader:
 
         # Add the patch mask loading method, which is named with format like "timestamp_{patch_num}.png"
         self.mask_path = (
-            self.file_path
-            + "itri-scene_1-1600-mask/"
-            + str(self.timestamp[self.id])
-            + ".png"
+            self.file_path + "mask/" + str(self.timestamp[self.id]) + ".png"
         )
         mask_folder = os.path.dirname(self.mask_path)
         if not os.path.exists(mask_folder):
@@ -220,26 +209,32 @@ class Patch_DataLoader:
 
     def load_lidar_mask(self):
         if not os.path.exists(self.lidar_mask_path):
-            self.lidar_mask = np.zeros((875, 875, 3))
+            width = abs(
+                self.patch_range[self.patch_index][0]
+                - self.patch_range[self.patch_index][1]
+            )
+            self.lidar_mask = np.zeros((width, width, 3))
             self.lidar_mask_alpha = np.zeros(self.lidar_mask.shape, dtype=np.float32)
             return self.lidar_mask, self.lidar_mask_alpha
         else:
-            self.lidar_range_mask = cv2.imread(self.lidar_range_mask_path, 1)
+            # self.lidar_range_mask = cv2.imread(self.lidar_range_mask_path, 1)
             self.lidar_mask = cv2.imread(self.lidar_mask_path, 0)
             self.lidar_color = np.zeros((*self.lidar_mask.shape[:2], 3), dtype=np.uint8)
-            self.lidar_color[:, :, 1] = self.lidar_mask * 255
+            self.lidar_color[:, :, 1] = self.lidar_mask
 
             # Swap the blue and green channels
             self.lidar_mask = self.lidar_color
 
-            combine = cv2.addWeighted(self.lidar_mask, 1, self.lidar_range_mask, 1, 0)
-            self.lidar_mask = cv2.cvtColor(combine, cv2.COLOR_BGR2RGB)
+            # combine = cv2.addWeighted(self.lidar_mask, 1, self.lidar_range_mask, 1, 0)
+            self.lidar_mask = cv2.cvtColor(self.lidar_mask, cv2.COLOR_BGR2RGB)
 
             self.lidar_mask = self.lidar_mask[
-                self.patch_index[0]
-                * self.patch_size : (self.patch_index[0] + 1)
-                * self.patch_size,
-                600:1000,
+                self.patch_range[self.patch_index][0] : self.patch_range[
+                    self.patch_index
+                ][1],
+                self.patch_range[self.patch_index][2] : self.patch_range[
+                    self.patch_index
+                ][3],
             ]
             gray = cv2.cvtColor(self.lidar_mask, cv2.COLOR_BGR2GRAY)
             lidar_mask_alpha = np.zeros(gray.shape, dtype=np.float32)
