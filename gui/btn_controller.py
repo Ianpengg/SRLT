@@ -205,28 +205,28 @@ class ButtonController:
 
     def on_switch_to_patch_0(self):
         if self.controller.patchmode:
-            self.controller.dataloader.set_patch_index(np.array([0, 0]))
+            self.controller.dataloader.set_patch_index(0)
             self.controller.dataloader.load_data(self.controller.cursor)
             self.controller.reset_this_interaction()
             self.controller.showCurrentFrame()
 
     def on_switch_to_patch_1(self):
         if self.controller.patchmode:
-            self.controller.dataloader.set_patch_index(np.array([1, 1]))
+            self.controller.dataloader.set_patch_index(1)
             self.controller.dataloader.load_data(self.controller.cursor)
             self.controller.reset_this_interaction()
             self.controller.showCurrentFrame()
 
     def on_switch_to_patch_2(self):
         if self.controller.patchmode:
-            self.controller.dataloader.set_patch_index(np.array([2, 2]))
+            self.controller.dataloader.set_patch_index(2)
             self.controller.dataloader.load_data(self.controller.cursor)
             self.controller.reset_this_interaction()
             self.controller.showCurrentFrame()
 
     def on_switch_to_patch_3(self):
         if self.controller.patchmode:
-            self.controller.dataloader.set_patch_index(np.array([3, 3]))
+            self.controller.dataloader.set_patch_index(3)
             self.controller.dataloader.load_data(self.controller.cursor)
             self.controller.reset_this_interaction()
             self.controller.showCurrentFrame()
