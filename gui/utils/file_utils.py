@@ -155,7 +155,7 @@ class Patch_DataLoader:
         # Add the patch mask loading method, which is named with format like "timestamp_{patch_num}.png"
         self.mask_path = (
             self.file_path
-            + "itri-scene_1-1600-mask/"
+            + "mask/"
             + str(self.timestamp[self.id])
             + ".png"
         )
